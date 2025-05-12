@@ -3,11 +3,11 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "src\\BookStore.API.Products\\BookStore.API.Products.csproj",
+        "Path": "src\\Product\\Product.csproj",
         "Action": "Start"
       },
       {
-        "Path": "src\\BookStore.API.Authentication\\BookStore.API.Authentication.csproj",
+        "Path": "src\\Authentication\\Authentication.csproj",
         "Action": "Start"
       }
     ]
