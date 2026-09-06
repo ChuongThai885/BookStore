@@ -17,7 +17,7 @@ namespace Product.API.Extentions
         {
             // Configure EF Core DbContext
             services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             // Repository registrations
             services.AddScoped<IAuthorRepository, AuthorRepository>();
@@ -32,7 +32,10 @@ namespace Product.API.Extentions
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             // AutoMapper configuration
-            services.AddAutoMapper(typeof(MappingProfile));
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<MappingProfile>();
+            });
 
             // Service registrations
             services.AddScoped<IAuthorService, AuthorService>();

@@ -13,7 +13,7 @@ namespace Authentication.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20250524125229_initdb")]
-    partial class initdb
+    partial class initDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
