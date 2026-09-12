@@ -14,7 +14,9 @@ namespace Product.Application.Mapping
 
             CreateMap<AuthorEntity, BookAuthorDTO>();
             CreateMap<GenreEntity, BookGenreDTO>();
-            CreateMap<BookEntity, BookDTO>();
+            CreateMap<BookEntity, BookDTO>()
+                .ForMember(dest => dest.Genres,
+                opt => opt.MapFrom(src => src.Genre ));
 
             CreateMap<AuthorCreateDTO, AuthorEntity>();
 

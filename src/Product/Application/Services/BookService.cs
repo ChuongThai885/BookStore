@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Product.Application.DTOs;
+using Product.Application.DTOs.Common;
 using Product.Application.Interfaces;
 using Product.Domain.Entity;
 using Product.Domain.Interfaces;
@@ -18,11 +20,29 @@ namespace Product.Application.Services
             this._bookRepository = bookRepository;
             this._authorRepository = authorRepository;
         }
-        public async Task<IEnumerable<BookDTO>> Get()
+        public async Task<IEnumerable<BookDTO>> Get(QueryParams? queryParams)
         {
-            var query = await _bookRepository.GetSet().Include(item => item.Author).ToListAsync();
-            var result = this._mapper.Map<IEnumerable<BookDTO>>(query); // Fix: Map to IEnumerable<BookDTO>
-            return result;
+            var query = _bookRepository.GetSet().AsNoTracking();
+
+            if(!String.IsNullOrWhiteSpace(queryParams?.Search))
+            {
+                query = query.Where(item => item.Title.Contains(queryParams.Search));
+            }
+
+            query = queryParams?.OrderBy?.Trim().ToLower() switch
+            {
+                "title" => query.OrderBy(b => b.Title),
+                "title_desc" => query.OrderByDescending(b => b.Title),
+                "price" => query.OrderBy(b => b.Price),
+                "price_desc" => query.OrderByDescending(b => b.Price),
+                _ => query.OrderBy(b => b.Title) // Default ordering by Title
+            };
+
+            return await query
+                .Skip(queryParams.StartIndex)
+                .Take(queryParams.PageSize)
+                .ProjectTo<BookDTO>(_mapper.ConfigurationProvider)
+                .ToListAsync();
         }
         public async Task Add(BookCreateDTO dto)
         {

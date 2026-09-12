@@ -28,7 +28,7 @@
         public required string Title { get; set; }
         public BookAuthorDTO? Author { get; set; }
         public string? Description { get; set; }
-        public ICollection<BookGenreDTO> Genre { get; set; } = [];
+        public ICollection<BookGenreDTO> Genres { get; set; } = [];
         public int Quantity { get; set; } = 0;
         public float Price { get; set; } = 0;
     }

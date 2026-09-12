@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Product.Application.DTOs;
+using Product.Application.DTOs.Common;
 using Product.Application.Interfaces;
 
 namespace Product.API.Controller
@@ -15,10 +16,10 @@ namespace Product.API.Controller
             this._service = service;
         }
 
-        [HttpGet("books/getall")]
-        public async Task<IEnumerable<BookDTO>> Get()
+        [HttpPost("books/get")]
+        public async Task<IEnumerable<BookDTO>> Get(QueryParams? queryParams)
         {
-            return await this._service.Get();
+            return await this._service.Get(queryParams);
         }
         [HttpPost("books/create")]
         public async Task Add(BookCreateDTO dto)
