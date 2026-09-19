@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Product.Application.DTOs;
+using Product.Application.DTOs.Common;
 using Product.Application.Interfaces;
 using Product.Domain.Entity;
 using Product.Domain.Interfaces;
@@ -17,11 +19,36 @@ namespace Product.Application.Services
             this._repository = _repository;
         }
 
-        public async Task<IEnumerable<AuthorDTO>> Get()
+        public async Task<IEnumerable<AuthorDTO>> Get(QueryParams? queryParams)
         {
-            var query = await _repository.GetSet().Include(item => item.Books).ToListAsync();
-            var result = this._mapper.Map<IEnumerable<AuthorDTO>>(query);
-            return result;
+            var query = _repository.GetSet().AsNoTracking();
+
+            if(!string.IsNullOrWhiteSpace(queryParams?.Search))
+            {
+                query = query.Where(item => item.Name.Contains(queryParams.Search.Trim()));
+            }
+
+            query = queryParams?.OrderBy switch
+            {
+                "name" => query.OrderBy(item => item.Name),
+                "name_desc" => query.OrderByDescending(item => item.Name),
+                _ => query.OrderBy(item => item.Name)
+            };
+
+            return await query
+                .Skip(queryParams?.StartIndex ?? 0)
+                .Take(queryParams?.PageSize ?? 10)
+                .ProjectTo<AuthorDTO>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+        }
+        public async Task<AuthorDTO?> GetAuthorById(Guid id)
+        {
+            var query = _repository.GetSet().AsNoTracking();
+
+            return await query
+                .Where(item => item.Id == id)
+                .ProjectTo<AuthorDTO>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
         }
         public async Task Add(AuthorCreateDTO dto)
         {

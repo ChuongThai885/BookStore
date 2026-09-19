@@ -22,6 +22,7 @@ namespace Product.API.Extentions
             // Repository registrations
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
 
             return services;
         }
@@ -40,6 +41,7 @@ namespace Product.API.Extentions
             // Service registrations
             services.AddScoped<IAuthorService, AuthorService>();
             services.AddScoped<IBookService, BookService>();
+            services.AddScoped<IGenreService, GenreService>();
 
             return services;
         }

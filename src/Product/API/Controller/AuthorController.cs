@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Product.Application.DTOs;
+using Product.Application.DTOs.Common;
 using Product.Application.Interfaces;
 
 namespace Product.API.Controller
@@ -14,10 +15,15 @@ namespace Product.API.Controller
         {
             this._services = _services;
         }
-        [HttpGet("author/getall")]
-        public async Task<IEnumerable<AuthorDTO>> Get()
+        [HttpPost("author/get")]
+        public async Task<IEnumerable<AuthorDTO>> Get(QueryParams? queryParams)
         {
-            return await _services.Get();
+            return await _services.Get(queryParams);
+        }
+        [HttpGet("author/{id}")]
+        public async Task<AuthorDTO?> GetAuthorById(Guid id)
+        {
+            return await _services.GetAuthorById(id);
         }
         [HttpPost("author/add")]
         public async Task Add(AuthorCreateDTO author)

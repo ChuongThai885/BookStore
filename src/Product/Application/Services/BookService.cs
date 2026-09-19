@@ -26,7 +26,7 @@ namespace Product.Application.Services
 
             if(!String.IsNullOrWhiteSpace(queryParams?.Search))
             {
-                query = query.Where(item => item.Title.Contains(queryParams.Search));
+                query = query.Where(item => item.Title.Contains(queryParams.Search.Trim()));
             }
 
             query = queryParams?.OrderBy?.Trim().ToLower() switch
@@ -39,8 +39,8 @@ namespace Product.Application.Services
             };
 
             return await query
-                .Skip(queryParams.StartIndex)
-                .Take(queryParams.PageSize)
+                .Skip(queryParams?.StartIndex ?? 0)
+                .Take(queryParams?.PageSize ?? 10)
                 .ProjectTo<BookDTO>(_mapper.ConfigurationProvider)
                 .ToListAsync();
         }
