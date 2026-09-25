@@ -1,8 +1,29 @@
-bin
-obj
+# Back-end files
+bin/
+obj/
 .vs
 .idea
-.cache
-node_modules
 *.csproj.user
 Settings/*
+
+# Front-end files
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & OS Common
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+.cache/

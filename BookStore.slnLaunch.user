@@ -5,6 +5,10 @@
       {
         "Path": "src\\Product\\Product.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "src\\UI\\UI.esproj",
+        "Action": "StartWithoutDebugging"
       }
     ]
   }
