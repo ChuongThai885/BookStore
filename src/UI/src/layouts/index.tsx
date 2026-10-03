@@ -3,9 +3,9 @@ import NavBar from "../components/NavBar";
 
 export default function Layout() {
     return (
-        <div className="h-screen bg-red-100">
+        <div className="flex h-screen flex-col">
             <NavBar />
-            <main className="bg-white">
+            <main className="flex-1 bg-rose-200">
                 <Outlet />
             </main>
         </div>
