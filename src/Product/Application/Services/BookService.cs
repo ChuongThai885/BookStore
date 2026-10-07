@@ -20,11 +20,11 @@ namespace Product.Application.Services
             this._bookRepository = bookRepository;
             this._authorRepository = authorRepository;
         }
-        public async Task<IEnumerable<BookDTO>> Get(QueryParams? queryParams)
+        public async Task<TableResponse<BookDTO>> Get(QueryParams? queryParams)
         {
             var query = _bookRepository.GetSet().AsNoTracking();
 
-            if(!String.IsNullOrWhiteSpace(queryParams?.Search))
+            if (!String.IsNullOrWhiteSpace(queryParams?.Search))
             {
                 query = query.Where(item => item.Title.Contains(queryParams.Search.Trim()));
             }
@@ -38,11 +38,39 @@ namespace Product.Application.Services
                 _ => query.OrderBy(b => b.Title) // Default ordering by Title
             };
 
-            return await query
-                .Skip(queryParams?.StartIndex ?? 0)
-                .Take(queryParams?.PageSize ?? 10)
+            int startIndex = queryParams?.StartIndex ?? 0;
+            int pageSize = queryParams?.PageSize ?? 10;
+
+            var totalRecords = await query.CountAsync();
+
+            if(totalRecords == 0)
+            {
+                return new TableResponse<BookDTO>
+                {
+                    Data = new List<BookDTO>(),
+                    Total = 0,
+                    CurrentPage = 1,
+                    TotalPages = 0,
+                    HasNextPage = false,
+                    HasPreviousPage = false
+                };
+            }
+
+            var data = await query
+                .Skip(startIndex)
+                .Take(pageSize)
                 .ProjectTo<BookDTO>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+
+            return new TableResponse<BookDTO>
+            {
+                Data = data,
+                Total = totalRecords,
+                CurrentPage = ((queryParams?.StartIndex ?? 0) / (queryParams?.PageSize ?? 10)) + 1,
+                TotalPages = (int)Math.Ceiling((double)totalRecords / (queryParams?.PageSize ?? 10)),
+                HasNextPage = (queryParams?.StartIndex ?? 0) + (queryParams?.PageSize ?? 10) < totalRecords,
+                HasPreviousPage = (queryParams?.StartIndex ?? 0) > 0
+            };
         }
         public async Task Add(BookCreateDTO dto)
         {

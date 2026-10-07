@@ -14,6 +14,8 @@ builder.Services.AddServices(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseCors("GlobalCorsPolicy");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

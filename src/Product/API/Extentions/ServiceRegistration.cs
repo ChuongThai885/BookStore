@@ -59,6 +59,22 @@ namespace Product.API.Extentions
             return services;
         }
 
+        public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
+        {
+            var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("GlobalCorsPolicy", builder =>
+                {
+                    builder.WithOrigins(allowedOrigins)
+                           .AllowAnyMethod()
+                           .AllowAnyHeader()
+                           .AllowCredentials();
+                });
+            });
+            return services;
+        }
+
         /// <summary>
         /// Centralized method to register all layers in correct order.
         /// </summary>
@@ -66,7 +82,8 @@ namespace Product.API.Extentions
         {
             services.AddInfrastructure(configuration)
                     .AddApplication()
-                    .AddWebApi();
+                    .AddWebApi()
+                    .AddCustomCors(configuration);
 
             return services;
         }

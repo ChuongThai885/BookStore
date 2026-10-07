@@ -16,12 +16,12 @@ namespace Product.API.Controller
             this._service = service;
         }
 
-        [HttpPost("books/get")]
-        public async Task<IEnumerable<BookDTO>> Get(QueryParams? queryParams)
+        [HttpPost("get")]
+        public async Task<TableResponse<BookDTO>> Get(QueryParams? queryParams)
         {
             return await this._service.Get(queryParams);
         }
-        [HttpPost("books/create")]
+        [HttpPost("create")]
         public async Task Add(BookCreateDTO dto)
         {
             await _service.Add(dto);

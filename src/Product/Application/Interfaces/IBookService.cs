@@ -5,7 +5,7 @@ namespace Product.Application.Interfaces
 {
     public interface IBookService
     {
-        Task<IEnumerable<BookDTO>> Get(QueryParams? queryParams);
+        Task<TableResponse<BookDTO>> Get(QueryParams? queryParams);
         Task Add(BookCreateDTO dto);
     }
 }
