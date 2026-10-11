@@ -21,4 +21,7 @@ export interface TableData<T> {
     total: number;
     currentPage: number;
     totalPages: number;
+    pageSize: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
 }

@@ -38,22 +38,19 @@ namespace Product.Application.Services
                 _ => query.OrderBy(b => b.Title) // Default ordering by Title
             };
 
-            int startIndex = queryParams?.StartIndex ?? 0;
             int pageSize = queryParams?.PageSize ?? 10;
+            int startIndex = (queryParams?.PageNumber - 1) * pageSize ?? 0;
 
             var totalRecords = await query.CountAsync();
 
             if(totalRecords == 0)
             {
-                return new TableResponse<BookDTO>
-                {
-                    Data = new List<BookDTO>(),
-                    Total = 0,
-                    CurrentPage = 1,
-                    TotalPages = 0,
-                    HasNextPage = false,
-                    HasPreviousPage = false
-                };
+                return new TableResponse<BookDTO>(
+                    [],
+                    totalRecords,
+                    queryParams?.PageNumber ?? 1,
+                    pageSize
+                );
             }
 
             var data = await query
@@ -62,15 +59,12 @@ namespace Product.Application.Services
                 .ProjectTo<BookDTO>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return new TableResponse<BookDTO>
-            {
-                Data = data,
-                Total = totalRecords,
-                CurrentPage = ((queryParams?.StartIndex ?? 0) / (queryParams?.PageSize ?? 10)) + 1,
-                TotalPages = (int)Math.Ceiling((double)totalRecords / (queryParams?.PageSize ?? 10)),
-                HasNextPage = (queryParams?.StartIndex ?? 0) + (queryParams?.PageSize ?? 10) < totalRecords,
-                HasPreviousPage = (queryParams?.StartIndex ?? 0) > 0
-            };
+            return new TableResponse<BookDTO>(
+                data,
+                totalRecords,
+                queryParams?.PageNumber ?? 1,
+                pageSize
+            );
         }
         public async Task Add(BookCreateDTO dto)
         {

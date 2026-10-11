@@ -14,6 +14,9 @@ export default function NavBar() {
                 <div className="p-2 font-medium">
                     <NavLink to="/orders">Orders</NavLink>
                 </div>
+                <div className="p-2 font-medium">
+                    <NavLink to="/about-us">About Us</NavLink>
+                </div>
             </div>
             <div className="bg-white p-2">Login</div>
         </div>

@@ -35,9 +35,12 @@ namespace Product.Application.Services
                 _ => query.OrderBy(item => item.Name)
             };
 
+            int pageSize = queryParams?.PageSize ?? 10;
+            int startIndex = (queryParams?.PageNumber - 1) * pageSize ?? 0;
+
             return await query
-                .Skip(queryParams?.StartIndex ?? 0)
-                .Take(queryParams?.PageSize ?? 10)
+                .Skip(startIndex)
+                .Take(pageSize)
                 .ProjectTo<AuthorDTO>(_mapper.ConfigurationProvider)
                 .ToListAsync();
         }

@@ -18,11 +18,6 @@ namespace Product.Application.Services
         }
         public async Task<GenreDTO?> GetGenreById(Guid id)
         {
-            //var query = _repository.GetSet().AsNoTracking().Include(item => item.Books).FirstOrDefaultAsync(g => g.Id == id);
-
-            //var result = this._mapper.Map<GenreDTO>(await query);
-
-            //return result;
             var query = _repository.GetSet().AsNoTracking();
 
             
