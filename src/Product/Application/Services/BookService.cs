@@ -11,14 +11,14 @@ namespace Product.Application.Services
 {
     public class BookService : IBookService
     {
-        private readonly IMapper _mapper;
         private readonly IBookRepository _bookRepository;
         private readonly IAuthorRepository _authorRepository;
-        public BookService(IMapper mapper, IBookRepository bookRepository, IAuthorRepository authorRepository)
+        private readonly IGenreRepository _genreRepository;
+        public BookService(IBookRepository bookRepository, IAuthorRepository authorRepository, IGenreRepository genreRepository)
         {
-            this._mapper = mapper;
             this._bookRepository = bookRepository;
             this._authorRepository = authorRepository;
+            this._genreRepository = genreRepository;
         }
         public async Task<TableResponse<BookDTO>> Get(QueryParams? queryParams)
         {
@@ -56,7 +56,14 @@ namespace Product.Application.Services
             var data = await query
                 .Skip(startIndex)
                 .Take(pageSize)
-                .ProjectTo<BookDTO>(_mapper.ConfigurationProvider)
+                .Select(book => new BookDTO
+                {
+                    Id = book.Id,
+                    Title = book.Title,
+                    Price = book.Price,
+                    Genres = book.Genres.Select(g => new BookGenreDTO { Id = g.Id, Name = g.Name }).ToList(),
+                    Author =  new BookAuthorDTO { Id = book.Author.Id, Name = book.Author.Name }
+                })
                 .ToListAsync();
 
             return new TableResponse<BookDTO>(
@@ -66,21 +73,50 @@ namespace Product.Application.Services
                 pageSize
             );
         }
+        public async Task<BookDTO?> Get(Guid id)
+        {
+            var query = _bookRepository.GetSet(item => item.Id == id).Select(book => new BookDTO { 
+                Id = book.Id,
+                Title = book.Title,
+                Price = book.Price,
+                Genres = book.Genres.Select(g => new BookGenreDTO { Id = g.Id, Name = g.Name }).ToList(),
+                Author =  new BookAuthorDTO { Id = book.Author.Id, Name = book.Author.Name }
+            });
+
+            return await query.FirstOrDefaultAsync();
+        }
         public async Task Add(BookCreateDTO dto)
         {
-            if (dto.AuthorId == null)
-                throw new ArgumentException("AuthorId is required.");
+            var authorExists = await _authorRepository.GetSet().AnyAsync(a => a.Id == dto.AuthorId);
 
-            var author = await _authorRepository.FindAsync(item => item.Id == dto.AuthorId);
-
-            if (author == null)
+            if (!authorExists)
                 throw new KeyNotFoundException($"Author with ID {dto.AuthorId} not found.");
 
-            var entity = this._mapper.Map<BookEntity>(dto);
+            var genreIds = dto.GenreIds.Distinct().ToList();
 
-            entity.Author = author;
+            var genreList = await _genreRepository.GetSet()
+                .Where(g => genreIds.Contains(g.Id))
+                .ToListAsync();
 
-            author.Books.Add(entity);
+            if (genreList.Count != genreIds.Count)
+            {
+                var missingGenres = genreIds.Except(genreList.Select(g => g.Id));
+                throw new KeyNotFoundException($"Genres with IDs {string.Join(", ", missingGenres)} not found.");
+            }
+
+            var author = new AuthorEntity { Id = dto.AuthorId, Name = "" };
+
+            _authorRepository.Attach(author);
+
+            var entity = new BookEntity
+            {
+                Title = dto.Title,
+                Author = author,
+                Description = dto.Description,
+                Genres = genreList,
+                Quantity = dto.Quantity,
+                Price = dto.Price
+            };
 
             await _bookRepository.AddAsync(entity);
         }

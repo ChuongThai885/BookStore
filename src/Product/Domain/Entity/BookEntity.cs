@@ -9,7 +9,7 @@ namespace Product.Domain.Entity
         [Key]
         public Guid Id { get; set; } = new Guid();
         public required string Title { get; set; }
-        public virtual AuthorEntity? Author { get; set; }
+        public virtual AuthorEntity Author { get; set; }
         public string? Description { get; set; }
         public virtual ICollection<GenreEntity> Genres { get; set; } = [];
         public int Quantity { get; set; } = 0;

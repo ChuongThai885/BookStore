@@ -6,6 +6,7 @@ namespace Product.Application.Interfaces
     public interface IBookService
     {
         Task<TableResponse<BookDTO>> Get(QueryParams? queryParams);
+        Task<BookDTO?> Get(Guid id);
         Task Add(BookCreateDTO dto);
     }
 }

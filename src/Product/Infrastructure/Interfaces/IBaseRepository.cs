@@ -9,5 +9,6 @@ namespace Product.Infrastructure.Interface
         Task<T?> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken));
         Task<T?> FindForUpdateAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken));
         Task<T> AddAsync(T entity, CancellationToken cancellationToken = default(CancellationToken));
+        void Attach(T entity);
     }
 }

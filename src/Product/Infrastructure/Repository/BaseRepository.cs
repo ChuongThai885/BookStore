@@ -46,5 +46,10 @@ namespace Product.Infrastructure.Repository
             await _dbcontext.SaveChangesAsync();
             return result.Entity;
         }
+
+        public void Attach(T entity)
+        {
+            this._dbSet.Attach(entity);
+        }
     }
 }
