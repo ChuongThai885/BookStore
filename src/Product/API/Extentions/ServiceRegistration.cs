@@ -15,9 +15,15 @@ namespace Product.API.Extentions
         /// </summary>
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            var connectionString = configuration.GetConnectionString("ProductConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Connection string 'ProductConnection' is required.");
+            }
+
             // Configure EF Core DbContext
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(connectionString));
 
             // Repository registrations
             services.AddScoped<IAuthorRepository, AuthorRepository>();

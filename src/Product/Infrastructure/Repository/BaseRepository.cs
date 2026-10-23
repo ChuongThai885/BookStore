@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
-using Product.Infrastructure.Interface;
 using System.Linq.Expressions;
 using Product.Infrastructure.Data;
+using Product.Domain.Interfaces;
 
 namespace Product.Infrastructure.Repository
 {
@@ -50,6 +50,11 @@ namespace Product.Infrastructure.Repository
         public void Attach(T entity)
         {
             this._dbSet.Attach(entity);
+        }
+        public async Task DeleteAsync(T entity, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            this._dbSet.Remove(entity);
+            await _dbcontext.SaveChangesAsync(cancellationToken);
         }
     }
 }

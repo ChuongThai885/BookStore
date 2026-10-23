@@ -113,7 +113,7 @@ namespace Product.Application.Services
                 Title = dto.Title,
                 Author = author,
                 Description = dto.Description,
-                Genres = genreList,
+                Genres = genreList, 
                 Quantity = dto.Quantity,
                 Price = dto.Price
             };

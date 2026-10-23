@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Product.Infrastructure.Interface
+namespace Product.Domain.Interfaces
 {
     public interface IBaseRepository<T> where T : class
     {
@@ -10,5 +10,6 @@ namespace Product.Infrastructure.Interface
         Task<T?> FindForUpdateAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken));
         Task<T> AddAsync(T entity, CancellationToken cancellationToken = default(CancellationToken));
         void Attach(T entity);
+        Task DeleteAsync(T entity, CancellationToken cancellationToken = default(CancellationToken));
     }
 }
