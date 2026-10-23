@@ -6,12 +6,10 @@ using System;
 
 namespace Authentication.Infrastructure.Data
 {
-    public class AppDbContext: IdentityDbContext<ApplicationUserEntity>
+    public class AppDbContext: IdentityDbContext<ApplicationUserEntity, IdentityRole<Guid>, Guid>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-        public DbSet<ApplicationUserEntity> ApplicationUsers { get; set; }
-
+        public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -19,6 +17,8 @@ namespace Authentication.Infrastructure.Data
             builder.Entity<ApplicationUserEntity>().HasIndex(u => u.NormalizedEmail)
                 .IsUnique()
                 .HasDatabaseName("EmailIndex");
+
+            builder.Entity<RefreshTokenEntity>().HasKey(rt => rt.Id);
         }
     }
 }

@@ -13,12 +13,18 @@ namespace Authentication.API.Extentions
         /// </summary>
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            var connectionString = configuration.GetConnectionString("AuthenticationConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Connection string 'AuthenticationConnection' is required.");
+            }
+
             // Configure EF Core DbContext
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(connectionString));
             
             // Configure User Identity
-            services.AddIdentity<ApplicationUserEntity, IdentityRole>()
+            services.AddIdentity<ApplicationUserEntity, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 

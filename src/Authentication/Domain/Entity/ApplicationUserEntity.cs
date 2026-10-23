@@ -2,7 +2,7 @@
 
 namespace Authentication.Domain.Entity
 {
-    public class ApplicationUserEntity : IdentityUser
+    public class ApplicationUserEntity : IdentityUser<Guid>
     {
         public string? DisplayName { get; set; }
     }
