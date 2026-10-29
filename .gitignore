@@ -5,6 +5,7 @@ obj/
 .idea
 *.csproj.user
 Settings/*
+!Settings/appsettings.example.json
 
 # Front-end files
 node_modules/
