@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Product.Application.Interfaces;
-using Product.Application.Mapping;
 using Product.Application.Services;
 using Product.Domain.Interfaces;
 using Product.Infrastructure.Data;
@@ -39,10 +38,10 @@ namespace Product.API.Extentions
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             // AutoMapper configuration
-            services.AddAutoMapper(cfg =>
-            {
-                cfg.AddProfile<MappingProfile>();
-            });
+            //services.AddAutoMapper(cfg =>
+            //{
+            //    cfg.AddProfile<MappingProfile>();
+            //});
 
             // Service registrations
             services.AddScoped<IAuthorService, AuthorService>();
@@ -65,21 +64,24 @@ namespace Product.API.Extentions
             return services;
         }
 
-        public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
-        {
-            var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-            services.AddCors(options =>
-            {
-                options.AddPolicy("GlobalCorsPolicy", builder =>
-                {
-                    builder.WithOrigins(allowedOrigins)
-                           .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .AllowCredentials();
-                });
-            });
-            return services;
-        }
+        /// <summary>
+        /// Registers Custom CORS services.
+        /// </summary>
+        //public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
+        //{
+        //    var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        //    services.AddCors(options =>
+        //    {
+        //        options.AddPolicy("GlobalCorsPolicy", builder =>
+        //        {
+        //            builder.WithOrigins(allowedOrigins)
+        //                   .AllowAnyMethod()
+        //                   .AllowAnyHeader()
+        //                   .AllowCredentials();
+        //        });
+        //    });
+        //    return services;
+        //}
 
         /// <summary>
         /// Centralized method to register all layers in correct order.
@@ -88,8 +90,8 @@ namespace Product.API.Extentions
         {
             services.AddInfrastructure(configuration)
                     .AddApplication()
-                    .AddWebApi()
-                    .AddCustomCors(configuration);
+                    .AddWebApi();
+                    //.AddCustomCors(configuration);
 
             return services;
         }

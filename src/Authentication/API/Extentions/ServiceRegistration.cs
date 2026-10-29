@@ -1,6 +1,10 @@
-﻿using Authentication.Application.Mapping;
+﻿using Authentication.Application.Interfaces;
+using Authentication.Application.Services;
 using Authentication.Domain.Entity;
+using Authentication.Domain.Interfaces;
 using Authentication.Infrastructure.Data;
+using Authentication.Infrastructure.Repository;
+using Authentication.Infrastructure.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,7 +33,7 @@ namespace Authentication.API.Extentions
                 .AddDefaultTokenProviders();
 
             // Repository registrations
-            //services.AddScoped<IAuthorRepository, AuthorRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             return services;
         }
@@ -39,14 +43,33 @@ namespace Authentication.API.Extentions
         /// </summary>
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            // AutoMapper configuration
-            services.AddAutoMapper(cfg =>
-            {
-                cfg.AddProfile<MappingProfile>();
-            });
-
             // Service registrations
-            //services.AddScoped<IAuthorService, AuthorService>();
+            services.AddScoped<ITokenServices, TokenServices>();
+            services.AddScoped<IAuthServices, AuthServices>();
+
+            return services;
+        }
+
+        /// <summary>
+        /// Registers Web API specific services: controllers, Swagger, API behavior.
+        /// </summary>
+        public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddIdentityCore<ApplicationUserEntity>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+            })
+            .AddRoles<IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
+            services.AddSingleton<JwtKeyManager>();
+            services.AddScoped<IExternalAuthValidator, GoogleAuthValidator>();
+            services.AddSingleton<IExternalAuthValidator, MicrosoftAuthValidator>();
 
             return services;
         }
@@ -71,6 +94,7 @@ namespace Authentication.API.Extentions
         {
             services.AddInfrastructure(configuration)
                     .AddApplication()
+                    .AddAuthenticationServices(configuration)
                     .AddWebApi();
 
             return services;
