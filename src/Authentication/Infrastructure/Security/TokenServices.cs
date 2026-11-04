@@ -1,5 +1,8 @@
 ﻿using Authentication.Application.Interfaces;
+using Authentication.Domain.Constants;
 using Authentication.Domain.Entity;
+using Authentication.Domain.Options;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
@@ -10,28 +13,28 @@ namespace Authentication.Infrastructure.Security
     public class TokenServices: ITokenServices
     {
         private readonly JwtKeyManager _keyManager;
-        private readonly IConfiguration _config;
-        public TokenServices(JwtKeyManager keyManager, IConfiguration config)
+        private readonly JwtOptions _jwtOptions;
+        public TokenServices(JwtKeyManager keyManager, IOptions<JwtOptions> jwtOptions)
         {
             _keyManager = keyManager;
-            _config = config;
+            _jwtOptions = jwtOptions.Value;
         }
         public string GenerateAccessToken(ApplicationUserEntity user, IList<string> roles)
         {
             var handler = new JsonWebTokenHandler();
             var descriptor = new SecurityTokenDescriptor
             {
-                Issuer = _config["Jwt:Issuer"] ?? "https://localhost:7001",
-                Audience = _config["Jwt:Audience"] ?? "bookstore-microservices",
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Issuer = _jwtOptions.Issuer,
+                Audience = _jwtOptions.Audience,
+                Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
                 SigningCredentials = new SigningCredentials(_keyManager.PrivateKey, SecurityAlgorithms.EcdsaSha256),
                 Claims = new Dictionary<string, object>
                 {
                     [JwtRegisteredClaimNames.Sub] = user.Id.ToString(),
                     [JwtRegisteredClaimNames.Email] = user.Email ?? string.Empty,
                     [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString(),
-                    ["display_name"] = user.DisplayName ?? string.Empty,
-                    ["role"] = roles
+                    [AuthConstants.Claims.DisplayName] = user.DisplayName ?? string.Empty,
+                    [AuthConstants.Claims.Role] = roles
                 }
             };
             return handler.CreateToken(descriptor);

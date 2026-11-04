@@ -2,6 +2,7 @@
 using Authentication.Application.Services;
 using Authentication.Domain.Entity;
 using Authentication.Domain.Interfaces;
+using Authentication.Domain.Options;
 using Authentication.Infrastructure.Data;
 using Authentication.Infrastructure.Repository;
 using Authentication.Infrastructure.Security;
@@ -66,6 +67,16 @@ namespace Authentication.API.Extentions
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+
+            services.AddOptions<JwtOptions>()
+                .BindConfiguration(JwtOptions.SectionName)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            services.AddOptions<ExternalAuthOptions>()
+                .BindConfiguration(ExternalAuthOptions.SectionName)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
             services.AddSingleton<JwtKeyManager>();
             services.AddSingleton<IExternalAuthValidator, GoogleAuthValidator>();
