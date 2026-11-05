@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Product.Application.DTOs;
 using Product.Application.Interfaces;
 using Product.Domain.Interfaces;
@@ -9,11 +7,9 @@ namespace Product.Application.Services
 {
     public class GenreService: IGenreService
     {
-        private readonly IMapper _mapper;
         private readonly IGenreRepository _repository;
-        public GenreService(IMapper mapper, IGenreRepository repository)
+        public GenreService(IGenreRepository repository)
         {
-            _mapper = mapper;
             _repository = repository;
         }
         public async Task<GenreDTO?> GetGenreById(Guid id)
@@ -23,7 +19,11 @@ namespace Product.Application.Services
             
             return await query
                 .Where(item => item.Id == id)
-                .ProjectTo<GenreDTO>(_mapper.ConfigurationProvider)
+                .Select(item => new GenreDTO
+                {
+                    Id = item.Id,
+                    Name = item.Name
+                })
                 .FirstOrDefaultAsync();
         }
     }

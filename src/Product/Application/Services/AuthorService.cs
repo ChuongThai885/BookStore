@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Product.Application.DTOs;
 using Product.Application.DTOs.Common;
 using Product.Application.Interfaces;
@@ -11,11 +9,9 @@ namespace Product.Application.Services
 {
     public class AuthorService : IAuthorService
     {
-        private readonly IMapper _mapper;
         private readonly IAuthorRepository _repository;
-        public AuthorService(IMapper mapper, IAuthorRepository _repository)
+        public AuthorService(IAuthorRepository _repository)
         {
-            this._mapper = mapper;
             this._repository = _repository;
         }
 
@@ -41,7 +37,25 @@ namespace Product.Application.Services
             return await query
                 .Skip(startIndex)
                 .Take(pageSize)
-                .ProjectTo<AuthorDTO>(_mapper.ConfigurationProvider)
+                .Select(item => new AuthorDTO
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Description = item.Description,
+                    Books = item.Books.Select(book => new AuthorBookDTO
+                    {
+                        Id = book.Id,
+                        Title = book.Title,
+                        Description = book.Description,
+                        Price = book.Price,
+                        Quantity = book.Quantity,
+                        Genres = book.Genres.Select(genre => new BookGenreDTO
+                        {
+                            Id = genre.Id,
+                            Name = genre.Name
+                        }).ToList()
+                    }).ToList()
+                })
                 .ToListAsync();
         }
         public async Task<AuthorDTO?> GetAuthorById(Guid id)
@@ -50,13 +64,34 @@ namespace Product.Application.Services
 
             return await query
                 .Where(item => item.Id == id)
-                .ProjectTo<AuthorDTO>(_mapper.ConfigurationProvider)
+                .Select(item => new AuthorDTO
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Description = item.Description,
+                    Books = item.Books.Select(book => new AuthorBookDTO
+                    {
+                        Id = book.Id,
+                        Title = book.Title,
+                        Description = book.Description,
+                        Price = book.Price,
+                        Quantity = book.Quantity,
+                        Genres = book.Genres.Select(genre => new BookGenreDTO
+                        {
+                            Id = genre.Id,
+                            Name = genre.Name
+                        }).ToList()
+                    }).ToList()
+                })
                 .FirstOrDefaultAsync();
         }
         public async Task Add(AuthorCreateDTO dto)
         {
-            //dto.Name.IsNullOrWhiteSpace()
-            var author = this._mapper.Map<AuthorEntity>(dto);
+            var author = new AuthorEntity
+            {
+                Name = dto.Name,
+                Description = dto.Description
+            };
             await _repository.AddAsync(author);
         }
     }

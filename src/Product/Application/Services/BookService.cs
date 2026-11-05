@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Product.Application.DTOs;
 using Product.Application.DTOs.Common;
 using Product.Application.Interfaces;
