@@ -1,12 +1,9 @@
+using BookStore.Common.Configuration;
 using Authentication.API.Extentions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var rootPath = Directory.GetParent(builder.Environment.ContentRootPath)!.Parent!.FullName;
-
-var configPath = Path.Combine(rootPath, "Settings", "appsettings.json");
-
-builder.Configuration.AddJsonFile(configPath, optional: true, reloadOnChange: true);
+builder.AddSharedConfiguration();
 
 // Add services to the container.
 

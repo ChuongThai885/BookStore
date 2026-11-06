@@ -5,6 +5,14 @@
       {
         "Path": "src\\Product\\Product.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "src\\Authentication\\Authentication.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\EmailNotification\\EmailNotification.csproj",
+        "Action": "Start"
       }
     ]
   }
