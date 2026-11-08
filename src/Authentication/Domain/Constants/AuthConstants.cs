@@ -18,11 +18,13 @@
         {
             public const string Role = "role";
             public const string DisplayName = "display_name";
+            public const string TenantId = "tid";
             public const string MicrosoftObjectId = "oid";
             public const string Subject = "sub";
             public const string Email = "email";
             public const string PreferredUsername = "preferred_username";
             public const string Name = "name";
+            public const string EmailDomainOwnerVerified = "xms_edov";
         }
     }
 }

@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Authentication.Infrastructure.Security
 {
-    public class MicrosoftAuthValidator: IExternalAuthValidator
+    public class MicrosoftAuthValidator : IExternalAuthValidator
     {
         private MicrosoftOptions _msOptions;
         private readonly ConfigurationManager<OpenIdConnectConfiguration> _oidcConfigManager;
@@ -27,7 +27,7 @@ namespace Authentication.Infrastructure.Security
         public async Task<ExternalUserPayload?> ValidateAsync(string token, CancellationToken cancellationToken)
         {
             var clientId = _msOptions.ClientId;
-            if(string.IsNullOrWhiteSpace(clientId))
+            if (string.IsNullOrWhiteSpace(clientId))
                 throw new InvalidOperationException("Microsoft ClientId is not configured.");
 
             var oidcConfig = await _oidcConfigManager.GetConfigurationAsync(cancellationToken);
@@ -40,10 +40,13 @@ namespace Authentication.Infrastructure.Security
                 ValidateIssuer = true,
                 IssuerValidator = (issuer, securityToken, validationParameters) =>
                 {
-                    if (issuer.StartsWith(_msOptions.ValidIssuerPrefix, StringComparison.OrdinalIgnoreCase) &&
-                        issuer.EndsWith(_msOptions.ValidIssuerSuffix, StringComparison.OrdinalIgnoreCase))
+                    if (securityToken is JsonWebToken jwt && jwt.TryGetPayloadValue<string>(AuthConstants.Claims.TenantId, out var tid) && !string.IsNullOrWhiteSpace(tid))
                     {
-                        return issuer;
+                        var expectedIssuer = $"{_msOptions.ValidIssuerPrefix}{tid}{_msOptions.ValidIssuerSuffix}";
+                        if (issuer.Equals(expectedIssuer, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return issuer;
+                        }
                     }
                     throw new SecurityTokenInvalidIssuerException($"Invalid issuer: {issuer}");
                 },
@@ -54,21 +57,28 @@ namespace Authentication.Infrastructure.Security
             if (!result.IsValid) return null;
 
             var claims = result.Claims;
-            var providerKey = claims.TryGetValue(AuthConstants.Claims.MicrosoftObjectId, out var oid) ? oid?.ToString() 
-                : claims.TryGetValue(AuthConstants.Claims.Subject, out var s) ? s?.ToString() 
+
+            var tidClaim = claims.TryGetValue(AuthConstants.Claims.TenantId, out var tid) ? tid?.ToString() : null;
+            var oidClaim = claims.TryGetValue(AuthConstants.Claims.MicrosoftObjectId, out var oid) ? oid?.ToString()
+                : claims.TryGetValue(AuthConstants.Claims.Subject, out var s) ? s?.ToString()
                 : null;
+
+            if (string.IsNullOrEmpty(tidClaim) || string.IsNullOrEmpty(oidClaim)) return null;
+
+            var providerKey = $"{tidClaim}_{oidClaim}";
+
             var email = claims.TryGetValue(AuthConstants.Claims.Email, out var e) ? e?.ToString()
                       : claims.TryGetValue(AuthConstants.Claims.PreferredUsername, out var p) ? p?.ToString() : null;
             var name = claims.TryGetValue(AuthConstants.Claims.Name, out var n) ? n?.ToString() : email;
 
-            if (string.IsNullOrEmpty(providerKey)) return null;
+            var isEmailVerified = claims.TryGetValue(AuthConstants.Claims.EmailDomainOwnerVerified, out var edov) && (string.Equals(edov?.ToString(), "true", StringComparison.OrdinalIgnoreCase) || edov?.ToString() == "1");
 
             return new ExternalUserPayload
             {
                 Provider = ProviderName,
                 ProviderKey = providerKey,  
                 Email = email,
-                EmailVerified = true,
+                EmailVerified = isEmailVerified,
                 DisplayName = name
             };
         }

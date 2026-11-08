@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using BookStore.Common.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 
 namespace Authentication.Infrastructure.Security
@@ -8,9 +9,9 @@ namespace Authentication.Infrastructure.Security
         public ECDsaSecurityKey PrivateKey { get; }
         public JsonWebKey PublicJwk { get; }
         public string KeyId => "bookstore-auth-key-2026";
-        public JwtKeyManager(IWebHostEnvironment env)
+        public JwtKeyManager(IWebHostEnvironment env, IConfiguration config)
         {
-            var keyPath = Path.Combine(env.ContentRootPath, "ecdsa_private.pem");
+            var keyPath = SharedConfigurationExtensions.GetSharedFilePath(env.ContentRootPath, "ecdsa_private.pem", config["Jwt:PrivateKeyPath"]);
             var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
 
             if (File.Exists(keyPath))

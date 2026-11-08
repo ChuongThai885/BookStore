@@ -2,26 +2,31 @@
 using Authentication.Application.Interfaces;
 using Authentication.Domain.Entity;
 using Authentication.Domain.Interfaces;
+using Authentication.Domain.Options;
 using Authentication.Infrastructure.Security;
 using Azure.Core;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace Authentication.Application.Services
 {
     public class AuthServices: IAuthServices
     {
         private readonly UserManager<ApplicationUserEntity> _userManager;
+        private readonly JwtOptions _jwtOptions;
         private readonly ITokenServices _tokenServices;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IEnumerable<IExternalAuthValidator> _externalAuthValidators;
         public AuthServices(
             UserManager<ApplicationUserEntity> userManager, 
             ITokenServices tokenServices, 
+            IOptions<JwtOptions> jwtOptions,
             IRefreshTokenRepository refreshTokenRepository, 
             IEnumerable<IExternalAuthValidator> externalAuthValidators)
         {
             _userManager = userManager;
             _tokenServices = tokenServices;
+            _jwtOptions = jwtOptions.Value;
             _refreshTokenRepository = refreshTokenRepository;
             _externalAuthValidators = externalAuthValidators;
         }
@@ -74,27 +79,28 @@ namespace Authentication.Application.Services
 
             if(user == null)
             {
-                if(!string.IsNullOrEmpty(payload.Email))
+                if(!string.IsNullOrWhiteSpace(payload.Email))
                 {
-                    user = await _userManager.FindByEmailAsync(payload.Email);
-                    if(user != null && !user.EmailConfirmed)
+                    var ExistingUser = await _userManager.FindByEmailAsync(payload.Email);
+                    if(ExistingUser != null)
                     {
-                        throw new InvalidOperationException("Email is not confirmed");
+                        throw new InvalidOperationException("Email is already registered");
                     }
                 }
-                if (user == null)
-                {
-                    user = new ApplicationUserEntity
-                    {
-                        UserName = payload.Email ?? Guid.NewGuid().ToString(),
-                        Email = payload.Email,
-                        DisplayName = payload.DisplayName,
-                        EmailConfirmed = payload.EmailVerified
-                    };
 
-                    var createResult = await _userManager.CreateAsync(user);
-                    if (!createResult.Succeeded)
-                        throw new InvalidOperationException("Unable to create account from social provider");
+                user = new ApplicationUserEntity
+                {
+                    UserName = $"user_{Guid.NewGuid()}:N",
+                    Email = payload.EmailVerified ? payload.Email : null,
+                    DisplayName = payload.DisplayName,
+                    EmailConfirmed = payload.EmailVerified && !string.IsNullOrWhiteSpace(payload.Email)
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Unable to create account from social provider: {errors}");
                 }
 
                 var loginInfo = new UserLoginInfo(payload.Provider, payload.ProviderKey, payload.Provider);
@@ -134,7 +140,7 @@ namespace Authentication.Application.Services
             {
                 UserId = user.Id,
                 TokenHash = _tokenServices.HashToken(rawRefreshToken),
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
                 CreatedByIp = ipAddress
             };
 

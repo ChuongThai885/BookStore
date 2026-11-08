@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
-$image = New-Object System.Drawing.Bitmap(1600, 1220)
+$image = New-Object System.Drawing.Bitmap(1600, 1640)
 $graphics = [System.Drawing.Graphics]::FromImage($image)
 $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
@@ -86,7 +86,7 @@ try {
     Write-Label 'ASP.NET Core Identity (.NET 10)' 860 591 28 '#14263F' $true
     Write-Label 'Guid users / roles | Refresh-token repository' 860 637 21
     Write-Label 'JWT key manager | JWKS / discovery endpoints' 860 678 21
-    Write-Label 'Auth controller has no login actions yet' 860 721 18 '#92691C'
+    Write-Label 'Register / login / external-login / refresh-token | Cookies' 860 721 18 '#92691C'
 
     Draw-Link 420 760 420 820
     Write-Label 'EF Core / SQL Server' 445 777 18
@@ -99,16 +99,43 @@ try {
     Write-Label 'BookStore.Authentication' 860 840 27 '#175D50' $true
     Write-Label 'SQL Server | AuthenticationConnection' 860 883 21 '#175D50'
 
-    Draw-Panel 70 965 1460 125 '#F0F1F4' '#AAB1BD' $true
-    Write-Label 'PLANNED / NOT IMPLEMENTED' 100 980 17 '#687386' $true
-    Write-Label 'Order service' 100 1013 24 '#39475B' $true
-    Write-Label 'Empty backend folder; UI proxy prefix exists.' 100 1052 19
-    Write-Label 'RabbitMQ / event messaging' 830 1013 24 '#39475B' $true
-    Write-Label 'No broker integration or service-to-service events yet.' 830 1052 19
+    Draw-Panel 70 965 1460 120 '#FFFFFF' '#CDD8E6'
+    Write-Label 'SHARED CONFIGURATION | BookStore.Common' 100 980 17 '#176B90' $true
+    Write-Label 'Authentication / Product / EmailNotification -> AddSharedConfiguration()' 100 1013 23 '#14263F' $true
+    Write-Label 'Settings/appsettings.json | ContentRootPath resolution | JWT private PEM defaults to Settings' 100 1052 20
 
-    Write-Label 'Solid arrows: implemented code paths   |   Dashed arrow: configured proxy only' 70 1113 19
-    Write-Label 'Scope: local development. Vite proxy is not a production API gateway.' 70 1146 19
-    Write-Label 'Database boxes describe configured targets, not verified deployed databases.' 70 1177 18
+    Write-Label 'PROPOSED EMAIL FLOW | Authentication -> RabbitMQ -> EmailNotification -> SMTP' 70 1110 23 '#14263F' $true
+
+    Draw-Panel 70 1155 430 190 '#F0F1F4' '#AAB1BD' $true
+    Write-Label 'RABBITMQ | PLANNED' 95 1175 17 '#687386' $true
+    Write-Label 'Email message queue' 95 1210 26 '#39475B' $true
+    Write-Label 'Planned publisher: Authentication' 95 1255 19
+    Write-Label 'No publisher / broker client yet' 95 1295 19
+
+    Draw-Link 500 1230 565 1230 $true
+    Write-Label 'Consume' 500 1195 16
+    Draw-Panel 570 1155 470 190 '#FFFFFF' '#65A9C6'
+    Write-Label 'EMAILNOTIFICATION | SCAFFOLD' 595 1175 17 '#176B90' $true
+    Write-Label '.NET 10 BackgroundService' 595 1210 26 '#14263F' $true
+    Write-Label 'MailKit installed; worker logs only' 595 1255 19
+    Write-Label 'RabbitMQ consumer / mail sender pending' 595 1295 19
+
+    Draw-Link 1040 1230 1105 1230 $true
+    Write-Label 'Send' 1050 1195 16
+    Draw-Panel 1110 1155 420 190 '#F0F1F4' '#AAB1BD' $true
+    Write-Label 'SMTP PROVIDER | PLANNED' 1135 1175 17 '#687386' $true
+    Write-Label 'Email delivery' 1135 1210 26 '#39475B' $true
+    Write-Label 'Sent by EmailNotification via MailKit' 1135 1255 19
+    Write-Label 'SMTP sending not implemented yet' 1135 1295 19
+
+    Draw-Panel 70 1380 1460 100 '#F0F1F4' '#AAB1BD' $true
+    Write-Label 'ORDER SERVICE | PLANNED / NOT IMPLEMENTED' 100 1395 17 '#687386' $true
+    Write-Label 'Empty backend folder; UI proxy prefix exists.' 100 1435 21 '#39475B'
+
+    Write-Label 'Solid borders: existing components | Dashed borders: planned components' 70 1505 19
+    Write-Label 'Solid arrows: implemented paths | Dashed arrows: proxy-only or proposed mail connections' 70 1538 19
+    Write-Label 'Scope: local development. Vite proxy is not a production API gateway.' 70 1571 19
+    Write-Label 'Database boxes describe configured targets, not verified deployed databases.' 70 1604 18
 
     $image.Save((Join-Path $PSScriptRoot 'bookstore_architecture.png'),
         [System.Drawing.Imaging.ImageFormat]::Png)
