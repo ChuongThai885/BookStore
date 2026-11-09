@@ -19,6 +19,12 @@ namespace Authentication.Infrastructure.Data
                 .HasDatabaseName("EmailIndex");
 
             builder.Entity<RefreshTokenEntity>().HasKey(rt => rt.Id);
+
+            builder.Entity<RefreshTokenEntity>(entity =>
+            {
+                entity.HasIndex(rt => rt.TokenHash).IsUnique();
+                entity.HasIndex(rt => rt.FamilyId);
+            });
         }
     }
 }

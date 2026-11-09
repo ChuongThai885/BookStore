@@ -2,6 +2,7 @@
 using Authentication.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Linq.Expressions;
 
 namespace Authentication.Infrastructure.Repository
 {
@@ -13,6 +14,14 @@ namespace Authentication.Infrastructure.Repository
         {
             _dbContext = dbContext;
             _dbSet = dbContext.Set<T>();
+        }
+        public IQueryable<T> GetSet(Expression<Func<T, bool>> predicate = null)
+        {
+            if (predicate == null)
+            {
+                return this._dbSet;
+            }
+            return this._dbSet.Where(predicate);
         }
         public async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
         {

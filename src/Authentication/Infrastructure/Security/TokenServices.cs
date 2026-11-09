@@ -45,6 +45,11 @@ namespace Authentication.Infrastructure.Security
         }
         public string HashToken(string rawToken)
         {
+            if (string.IsNullOrWhiteSpace(rawToken))
+            {
+                throw new ArgumentException("Token cannot be null or empty");
+            }
+
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
             return Convert.ToHexString(bytes);
         }

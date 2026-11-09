@@ -8,9 +8,5 @@ namespace Authentication.Infrastructure.Repository
     public class RefreshTokenRepository: BaseRepository<RefreshTokenEntity>,IRefreshTokenRepository
     {
         public RefreshTokenRepository(AppDbContext context) : base(context) { }
-        public async Task<RefreshTokenEntity?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)
-        {
-            return await _dbSet.FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, cancellationToken);
-        }
     }
 }

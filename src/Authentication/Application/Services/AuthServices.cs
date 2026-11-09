@@ -3,9 +3,8 @@ using Authentication.Application.Interfaces;
 using Authentication.Domain.Entity;
 using Authentication.Domain.Interfaces;
 using Authentication.Domain.Options;
-using Authentication.Infrastructure.Security;
-using Azure.Core;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Authentication.Application.Services
@@ -53,7 +52,21 @@ namespace Authentication.Application.Services
                 throw new InvalidOperationException(errors);
             }
 
-            return await IssueTokenAsync(user, ipAddress, cancellationToken);
+            var familyId = Guid.NewGuid();
+            var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.KeyRotationDays);
+
+            var rawRefreshToken = _tokenServices.GenerateRefreshToken();
+            var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
+
+            return await IssueTokenAsync(
+                user,
+                ipAddress,
+                familyId,
+                absoluteExpiresAt,
+                rawRefreshToken,
+                refreshTokenHash,
+                cancellationToken
+            );
         }
         public async Task<AuthTokenDTO> LoginAsync(LoginRequestDTO request, string? ipAddress, CancellationToken cancellationToken)
 
@@ -64,7 +77,22 @@ namespace Authentication.Application.Services
                 throw new InvalidOperationException("Invalid email or password");
             }
 
-            return await IssueTokenAsync(user, ipAddress, cancellationToken);
+
+            var familyId = Guid.NewGuid();
+            var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.AbsoluteRefreshTokenExpirationDays);
+
+            var rawRefreshToken = _tokenServices.GenerateRefreshToken();
+            var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
+
+            return await IssueTokenAsync(
+                user,
+                ipAddress,
+                familyId,
+                absoluteExpiresAt,
+                rawRefreshToken,
+                refreshTokenHash,
+                cancellationToken
+            );
         }
         public async Task<AuthTokenDTO> ExternalLoginAsync(ExternalLoginRequestDTO request, string? ipAddress, CancellationToken cancellationToken)
         {
@@ -90,7 +118,7 @@ namespace Authentication.Application.Services
 
                 user = new ApplicationUserEntity
                 {
-                    UserName = $"user_{Guid.NewGuid()}:N",
+                    UserName = $"user_{Guid.NewGuid():N}",
                     Email = payload.EmailVerified ? payload.Email : null,
                     DisplayName = payload.DisplayName,
                     EmailConfirmed = payload.EmailVerified && !string.IsNullOrWhiteSpace(payload.Email)
@@ -110,17 +138,73 @@ namespace Authentication.Application.Services
                     throw new InvalidOperationException("Unable to link external account");
             }
 
-            return await IssueTokenAsync(user, ipAddress, cancellationToken);
+            var familyId = Guid.NewGuid();
+            var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.KeyRotationDays);
+
+            var rawRefreshToken = _tokenServices.GenerateRefreshToken();
+            var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
+
+            return await IssueTokenAsync(
+                user, 
+                ipAddress,
+                familyId,
+                absoluteExpiresAt,
+                rawRefreshToken,
+                refreshTokenHash,
+                cancellationToken
+            );
         } 
         public async Task<AuthTokenDTO> RefreshTokenAsync(string rawRefreshToken, string? ipAddress, CancellationToken cancellationToken)
         {
             var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
-            var storedToken = await _refreshTokenRepository.GetByTokenHashAsync(refreshTokenHash, cancellationToken);
-            if (storedToken == null || storedToken.ExpiresAt < DateTime.UtcNow || storedToken.RevokedAt != null)
+            var storedToken = await _refreshTokenRepository.GetSet()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.TokenHash == refreshTokenHash, cancellationToken);
+
+            if (storedToken == null)
             {
                 throw new InvalidOperationException("Invalid or expired refresh token");
             }
-            storedToken.RevokedAt = DateTime.UtcNow;
+
+            var now = DateTime.UtcNow;
+            if (storedToken.AbsoluteExpiresAt <= now)
+            {
+                throw new UnauthorizedAccessException("Login session exceeded, please re-login again.");
+            }
+
+            var newRawRefreshToken = _tokenServices.GenerateRefreshToken();
+            var newRefreshTokenHash = _tokenServices.HashToken(newRawRefreshToken);
+
+            var affectedRows = await _refreshTokenRepository.GetSet()
+                .Where(t => t.TokenHash == refreshTokenHash
+                    && t.RevokedAt == null
+                    && t.ExpiresAt > now
+                    && t.AbsoluteExpiresAt > now)
+                .ExecuteUpdateAsync(setter => setter
+                    .SetProperty(t => t.RevokedAt, now)
+                    .SetProperty(t => t.ReplacedByTokenHash, newRefreshTokenHash),
+                    cancellationToken
+                );
+
+            if (affectedRows == 0)
+            {
+                if (storedToken.RevokedAt != null)
+                {
+                    var secondsSinceRevoked = (now - storedToken.RevokedAt.Value).TotalSeconds;
+        
+                    if (secondsSinceRevoked <= 10)
+                    {
+                        throw new InvalidOperationException("Refresh token was recently revoked.");
+                    }
+
+                    await _refreshTokenRepository.GetSet().Where(t => t.FamilyId == storedToken.FamilyId && t.RevokedAt == null)
+                        .ExecuteUpdateAsync(setter => setter.SetProperty(t => t.RevokedAt, now), cancellationToken);
+
+                    throw new UnauthorizedAccessException("Security alert: The session has been compromised. All related sessions have been revoked.");
+                }
+
+                throw new UnauthorizedAccessException("Refresh token is expired or invalid.");
+            }
 
             var user = await _userManager.FindByIdAsync(storedToken.UserId.ToString());
             if (user == null)
@@ -128,19 +212,39 @@ namespace Authentication.Application.Services
                 throw new UnauthorizedAccessException("User not found");
             }
 
-            return await IssueTokenAsync(user, ipAddress, cancellationToken);
+            return await IssueTokenAsync(user,
+                ipAddress,
+                storedToken.FamilyId,
+                storedToken.AbsoluteExpiresAt,
+                newRawRefreshToken,
+                newRefreshTokenHash,
+                cancellationToken
+            );
         }
-        private async Task<AuthTokenDTO> IssueTokenAsync(ApplicationUserEntity user, string? ipAddress, CancellationToken cancellationToken)
+        private async Task<AuthTokenDTO> IssueTokenAsync(
+            ApplicationUserEntity user, 
+            string? ipAddress, 
+            Guid familyId,
+            DateTime absoluteExpiresAt,
+            string rawRefreshToken,
+            string refreshTokenHash,
+            CancellationToken cancellationToken)
         {
             var roles = await _userManager.GetRolesAsync(user);
             var accessToken = _tokenServices.GenerateAccessToken(user, roles);
-            var rawRefreshToken = _tokenServices.GenerateRefreshToken();
+
+            var normalExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays);
+
+            var effectiveExpiresAt = normalExpiresAt < absoluteExpiresAt ? normalExpiresAt : absoluteExpiresAt;
 
             var refreshEntity = new RefreshTokenEntity
             {
+                Id = Guid.NewGuid(),
                 UserId = user.Id,
-                TokenHash = _tokenServices.HashToken(rawRefreshToken),
-                ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationDays),
+                FamilyId = familyId,
+                TokenHash = refreshTokenHash,
+                ExpiresAt = effectiveExpiresAt,
+                AbsoluteExpiresAt = absoluteExpiresAt,
                 CreatedByIp = ipAddress
             };
 
