@@ -12,6 +12,7 @@ namespace Authentication.Domain.Options
         public int AbsoluteRefreshTokenExpirationDays { get; init; } = 30;
         public int KeyRotationDays { get; init; } = 30;
         public int KeyGracePeriodDays { get; init; } = 2;
+        public int CleanTokenDurationHours { get; init; } = 24;
     }
     public class ExternalAuthOptions
     {

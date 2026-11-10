@@ -3,6 +3,7 @@ using Authentication.Application.Services;
 using Authentication.Domain.Entity;
 using Authentication.Domain.Interfaces;
 using Authentication.Domain.Options;
+using Authentication.Infrastructure.BackgroundJobs;
 using Authentication.Infrastructure.Data;
 using Authentication.Infrastructure.Repository;
 using Authentication.Infrastructure.Security;
@@ -99,6 +100,16 @@ namespace Authentication.API.Extentions
         }
 
         /// <summary>
+        /// Registers background services: hosted services for periodic tasks.
+        /// </summary>
+        public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
+        {
+            services.AddHostedService<TokenCleanupBackgroundService>();
+
+            return services;
+        }
+
+        /// <summary>
         /// Centralized method to register all layers in correct order.
         /// </summary>
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
@@ -106,7 +117,8 @@ namespace Authentication.API.Extentions
             services.AddInfrastructure(configuration)
                     .AddApplication()
                     .AddAuthenticationServices(configuration)
-                    .AddWebApi();
+                    .AddWebApi()
+                    .AddBackgroundServices();
 
             return services;
         }
