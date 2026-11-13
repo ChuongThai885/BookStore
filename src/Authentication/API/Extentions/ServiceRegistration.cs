@@ -1,4 +1,5 @@
-﻿using Authentication.Application.Interfaces;
+﻿using Authentication.API.Infrastructure;
+using Authentication.Application.Interfaces;
 using Authentication.Application.Services;
 using Authentication.Domain.Entity;
 using Authentication.Domain.Interfaces;
@@ -28,18 +29,12 @@ namespace Authentication.API.Extentions
             // Configure EF Core DbContext
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
-            
-            // Configure User Identity
-            services.AddIdentity<ApplicationUserEntity, IdentityRole<Guid>>()
-                .AddEntityFrameworkStores<AppDbContext>()
-                .AddDefaultTokenProviders();
 
             // Repository registrations
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             return services;
         }
-
         /// <summary>
         /// Registers application services: AutoMapper profiles and business services.
         /// </summary>
@@ -51,7 +46,6 @@ namespace Authentication.API.Extentions
 
             return services;
         }
-
         /// <summary>
         /// Registers Web API specific services: controllers, Swagger, API behavior.
         /// </summary>
@@ -85,7 +79,6 @@ namespace Authentication.API.Extentions
 
             return services;
         }
-
         /// <summary>
         /// Registers Web API specific services: controllers, Swagger, API behavior.
         /// </summary>
@@ -98,7 +91,16 @@ namespace Authentication.API.Extentions
 
             return services;
         }
+        /// <summary>
+        /// Registers Global exception handler.
+        /// </summary>
+        public static IServiceCollection AddGlobalExeptionHandler(this IServiceCollection services)
+        {
+            services.AddExceptionHandler<GlobalExceptionHandler>();
+            services.AddProblemDetails();
 
+            return services;
+        }
         /// <summary>
         /// Registers background services: hosted services for periodic tasks.
         /// </summary>
@@ -108,7 +110,6 @@ namespace Authentication.API.Extentions
 
             return services;
         }
-
         /// <summary>
         /// Centralized method to register all layers in correct order.
         /// </summary>
@@ -118,6 +119,7 @@ namespace Authentication.API.Extentions
                     .AddApplication()
                     .AddAuthenticationServices(configuration)
                     .AddWebApi()
+                    .AddGlobalExeptionHandler()
                     .AddBackgroundServices();
 
             return services;

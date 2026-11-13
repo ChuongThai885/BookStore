@@ -53,7 +53,7 @@ namespace Authentication.Application.Services
             }
 
             var familyId = Guid.NewGuid();
-            var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.KeyRotationDays);
+            var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.AbsoluteRefreshTokenExpirationDays);
 
             var rawRefreshToken = _tokenServices.GenerateRefreshToken();
             var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
@@ -105,7 +105,13 @@ namespace Authentication.Application.Services
 
             var user = await _userManager.FindByLoginAsync(payload.Provider, payload.ProviderKey);
 
-            if(user == null)
+            var familyId = Guid.NewGuid();
+            var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.AbsoluteRefreshTokenExpirationDays);
+
+            var rawRefreshToken = _tokenServices.GenerateRefreshToken();
+            var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
+
+            if (user == null)
             {
                 if(!string.IsNullOrWhiteSpace(payload.Email))
                 {
@@ -115,6 +121,8 @@ namespace Authentication.Application.Services
                         throw new InvalidOperationException("Email is already registered");
                     }
                 }
+
+                await using var transaction = await _refreshTokenRepository.BeginTransactionAsync(cancellationToken);
 
                 user = new ApplicationUserEntity
                 {
@@ -136,13 +144,21 @@ namespace Authentication.Application.Services
                 var addLoginResult = await _userManager.AddLoginAsync(user, loginInfo);
                 if(!addLoginResult.Succeeded)
                     throw new InvalidOperationException("Unable to link external account");
+
+                var issuedToken = await IssueTokenAsync(
+                    user,
+                    ipAddress,
+                    familyId,
+                    absoluteExpiresAt,
+                    rawRefreshToken,
+                    refreshTokenHash,
+                    cancellationToken
+                );
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return issuedToken;
             }
-
-            var familyId = Guid.NewGuid();
-            var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.KeyRotationDays);
-
-            var rawRefreshToken = _tokenServices.GenerateRefreshToken();
-            var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
 
             return await IssueTokenAsync(
                 user, 
@@ -249,7 +265,6 @@ namespace Authentication.Application.Services
             };
 
             await _refreshTokenRepository.AddAsync(refreshEntity, cancellationToken);
-            await _refreshTokenRepository.SaveChangesAsync(cancellationToken);
 
             return new AuthTokenDTO
             {
