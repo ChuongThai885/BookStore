@@ -1,5 +1,4 @@
-﻿using Authentication.Infrastructure.BackgroundJobs;
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -7,9 +6,9 @@ namespace Authentication.API.Infrastructure
 {
     public sealed class GlobalExceptionHandler: IExceptionHandler
     {
-        private readonly ILogger<TokenCleanupBackgroundService> _logger;
+        private readonly ILogger<GlobalExceptionHandler> _logger;
 
-        public GlobalExceptionHandler(ILogger<TokenCleanupBackgroundService> logger)
+        public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
         {
             _logger = logger;
         }

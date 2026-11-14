@@ -3,6 +3,7 @@ using Authentication.Application.Interfaces;
 using Authentication.Domain.Entity;
 using Authentication.Domain.Interfaces;
 using Authentication.Domain.Options;
+using BookStore.Common.Caching;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -16,18 +17,21 @@ namespace Authentication.Application.Services
         private readonly ITokenServices _tokenServices;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IEnumerable<IExternalAuthValidator> _externalAuthValidators;
+        private readonly ICacheService _cacheService;
         public AuthServices(
             UserManager<ApplicationUserEntity> userManager, 
             ITokenServices tokenServices, 
             IOptions<JwtOptions> jwtOptions,
             IRefreshTokenRepository refreshTokenRepository, 
-            IEnumerable<IExternalAuthValidator> externalAuthValidators)
+            IEnumerable<IExternalAuthValidator> externalAuthValidators,
+            ICacheService cacheService)
         {
             _userManager = userManager;
             _tokenServices = tokenServices;
             _jwtOptions = jwtOptions.Value;
             _refreshTokenRepository = refreshTokenRepository;
             _externalAuthValidators = externalAuthValidators;
+            _cacheService = cacheService;
         }
         public async Task<AuthTokenDTO> RegisterAsync(RegisterRequestDTO request, string? ipAddress, CancellationToken cancellationToken)
         {
@@ -69,14 +73,22 @@ namespace Authentication.Application.Services
             );
         }
         public async Task<AuthTokenDTO> LoginAsync(LoginRequestDTO request, string? ipAddress, CancellationToken cancellationToken)
-
         { 
             var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
+            if (user == null)
+                throw new UnauthorizedAccessException("Invalid email or password");
+
+            if(await _userManager.IsLockedOutAsync(user))
+                throw new UnauthorizedAccessException("Account is locked due to multiple failed login attempts. Please try again later.");
+
+            if (!await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                throw new InvalidOperationException("Invalid email or password");
+                await _userManager.AccessFailedAsync(user);
+                throw new UnauthorizedAccessException("Invalid email or password");
             }
 
+            if(user.AccessFailedCount > 0)
+                await _userManager.ResetAccessFailedCountAsync(user);
 
             var familyId = Guid.NewGuid();
             var absoluteExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.AbsoluteRefreshTokenExpirationDays);
@@ -175,12 +187,8 @@ namespace Authentication.Application.Services
             var refreshTokenHash = _tokenServices.HashToken(rawRefreshToken);
             var storedToken = await _refreshTokenRepository.GetSet()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.TokenHash == refreshTokenHash, cancellationToken);
-
-            if (storedToken == null)
-            {
-                throw new InvalidOperationException("Invalid or expired refresh token");
-            }
+                .FirstOrDefaultAsync(t => t.TokenHash == refreshTokenHash, cancellationToken)
+                ?? throw new UnauthorizedAccessException("Invalid or expired refresh token");
 
             var now = DateTime.UtcNow;
             if (storedToken.AbsoluteExpiresAt <= now)
@@ -204,16 +212,19 @@ namespace Authentication.Application.Services
 
             if (affectedRows == 0)
             {
-                if (storedToken.RevokedAt != null)
+                var currentTokenState = await _refreshTokenRepository.GetSet()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TokenHash == refreshTokenHash, cancellationToken);
+
+                if (currentTokenState?.RevokedAt != null)
                 {
-                    var secondsSinceRevoked = (now - storedToken.RevokedAt.Value).TotalSeconds;
+                    var secondsSinceRevoked = (now - currentTokenState.RevokedAt.Value).TotalSeconds;
         
                     if (secondsSinceRevoked <= 10)
-                    {
                         throw new InvalidOperationException("Refresh token was recently revoked.");
-                    }
 
-                    await _refreshTokenRepository.GetSet().Where(t => t.FamilyId == storedToken.FamilyId && t.RevokedAt == null)
+                    await _refreshTokenRepository.GetSet()
+                        .Where(t => t.FamilyId == storedToken.FamilyId && t.RevokedAt == null)
                         .ExecuteUpdateAsync(setter => setter.SetProperty(t => t.RevokedAt, now), cancellationToken);
 
                     throw new UnauthorizedAccessException("Security alert: The session has been compromised. All related sessions have been revoked.");
@@ -222,11 +233,8 @@ namespace Authentication.Application.Services
                 throw new UnauthorizedAccessException("Refresh token is expired or invalid.");
             }
 
-            var user = await _userManager.FindByIdAsync(storedToken.UserId.ToString());
-            if (user == null)
-            {
+            var user = await _userManager.FindByIdAsync(storedToken.UserId.ToString()) ??
                 throw new UnauthorizedAccessException("User not found");
-            }
 
             return await IssueTokenAsync(user,
                 ipAddress,
@@ -274,6 +282,31 @@ namespace Authentication.Application.Services
                 Email = user.Email ?? "",
                 DisplayName = user.DisplayName
             };
+        }
+        public async Task LogoutAsync(string? rawRefreshToken, string? accessToken, CancellationToken cancellationToken)
+        {
+            if(!string.IsNullOrWhiteSpace(rawRefreshToken))
+            {
+                var tokenHash = _tokenServices.HashToken(rawRefreshToken);
+
+                var storedToken = await _refreshTokenRepository.GetSet().AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
+
+                if(storedToken != null)
+                {
+                    var now = DateTime.UtcNow;
+                    await _refreshTokenRepository.GetSet()
+                        .Where(t => t.FamilyId == storedToken.FamilyId && t.RevokedAt == null)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.RevokedAt, now), cancellationToken);
+                }
+            }
+
+            if(!string.IsNullOrWhiteSpace(accessToken))
+            {
+                var ttl = TimeSpan.FromMinutes(_jwtOptions.AccessTokenExpirationMinutes);
+                var cacheKey = $"blacklist:jti:{accessToken}";
+                await _cacheService.SetAsync(cacheKey, true, ttl);
+            }
         }
     }
 }

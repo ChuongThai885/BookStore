@@ -8,5 +8,6 @@ namespace Authentication.Application.Interfaces
         Task<AuthTokenDTO> LoginAsync(LoginRequestDTO request, string? ipAddress, CancellationToken cancellationToken);
         Task<AuthTokenDTO> ExternalLoginAsync(ExternalLoginRequestDTO request, string? ipAddress, CancellationToken cancellationToken);
         Task<AuthTokenDTO> RefreshTokenAsync(string rawRefreshToken, string? ipAddress, CancellationToken cancellationToken);
+        Task LogoutAsync(string? rawRefreshToken, string? accessToken, CancellationToken cancellationToken);
     }
 }

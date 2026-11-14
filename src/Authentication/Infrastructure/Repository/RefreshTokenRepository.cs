@@ -1,7 +1,6 @@
 ﻿using Authentication.Domain.Entity;
 using Authentication.Domain.Interfaces;
 using Authentication.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace Authentication.Infrastructure.Repository
 {

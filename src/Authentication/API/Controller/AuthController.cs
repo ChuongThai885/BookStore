@@ -1,9 +1,10 @@
 ﻿using Authentication.Application.DTOs;
 using Authentication.Application.Interfaces;
-using Authentication.Application.Services;
 using Authentication.Domain.Constants;
 using Authentication.Domain.Options;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace Authentication.API.Controller
@@ -19,6 +20,7 @@ namespace Authentication.API.Controller
             _authServices = authServices;
             _jwtOptions = jwtOptions.Value;
         }
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDTO request, CancellationToken ct)
         {
@@ -27,7 +29,7 @@ namespace Authentication.API.Controller
 
             return Ok(new { result.UserId, result.Email, result.DisplayName });
         }
-
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO request, CancellationToken ct)
         {
@@ -36,6 +38,7 @@ namespace Authentication.API.Controller
 
             return Ok(new { result.UserId, result.Email, result.DisplayName });
         }
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost("external-login")]
         public async Task<IActionResult> ExternalLogin([FromBody] ExternalLoginRequestDTO request, CancellationToken cancellationToken)
         {
@@ -57,6 +60,31 @@ namespace Authentication.API.Controller
 
             return Ok(new { result.UserId, result.Email, result.DisplayName });
         }
+        [AllowAnonymous]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+        {
+            Request.Cookies.TryGetValue(AuthConstants.Cookies.RefreshToken, out var refreshToken);
+            var jti = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
+
+            await _authServices.LogoutAsync(refreshToken, jti, cancellationToken);
+
+            Response.Cookies.Delete(AuthConstants.Cookies.AccessToken, new CookieOptions {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = AuthConstants.Cookies.RootPath 
+            });
+            Response.Cookies.Delete(AuthConstants.Cookies.RefreshToken, new CookieOptions {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = AuthConstants.Cookies.AuthPath 
+            });
+
+            return Ok(new { message = "Logged out successfully." });
+        }
+
         private void SetTokenCookies(string accessToken, string refreshToken)
         {
             Response.Cookies.Append(AuthConstants.Cookies.AccessToken, accessToken, new CookieOptions
