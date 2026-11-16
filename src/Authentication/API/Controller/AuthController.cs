@@ -43,10 +43,23 @@ namespace Authentication.API.Controller
         public async Task<IActionResult> ExternalLogin([FromBody] ExternalLoginRequestDTO request, CancellationToken cancellationToken)
         {
             var result = await _authServices.ExternalLoginAsync(request, HttpContext.Connection.RemoteIpAddress?.ToString(), cancellationToken);
+
+            if(result.RequireLinking)
+            {
+                return Conflict(new
+                {
+                    result.RequireLinking,
+                    result.Email,
+                    result.isExistingEmailConfirmed,
+                    result.Message
+                });
+            }
+
             SetTokenCookies(result.AccessToken, result.RefreshToken);
 
             return Ok(new { result.UserId, result.Email, result.DisplayName });
         }
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken(CancellationToken cancellationToken)
         {
@@ -60,6 +73,7 @@ namespace Authentication.API.Controller
 
             return Ok(new { result.UserId, result.Email, result.DisplayName });
         }
+        [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken)
@@ -67,7 +81,14 @@ namespace Authentication.API.Controller
             Request.Cookies.TryGetValue(AuthConstants.Cookies.RefreshToken, out var refreshToken);
             var jti = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
 
-            await _authServices.LogoutAsync(refreshToken, jti, cancellationToken);
+            DateTime? accessTokenExpireAt = null;
+            var expClaim = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Exp)?.Value;
+            if(long.TryParse(expClaim, out var exp))
+            {
+                accessTokenExpireAt = DateTimeOffset.FromUnixTimeSeconds(exp).UtcDateTime;
+            }
+
+            await _authServices.LogoutAsync(refreshToken, jti, accessTokenExpireAt, cancellationToken);
 
             Response.Cookies.Delete(AuthConstants.Cookies.AccessToken, new CookieOptions {
                 HttpOnly = true,

@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
-$image = New-Object System.Drawing.Bitmap(1600, 1640)
+$image = New-Object System.Drawing.Bitmap(1600, 1900)
 $graphics = [System.Drawing.Graphics]::FromImage($image)
 $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
@@ -86,7 +86,7 @@ try {
     Write-Label 'ASP.NET Core Identity (.NET 10)' 860 591 28 '#14263F' $true
     Write-Label 'Guid users / roles | Refresh-token repository' 860 637 21
     Write-Label 'JWT key manager | JWKS / discovery endpoints' 860 678 21
-    Write-Label 'Register / login / external-login / refresh-token | Cookies' 860 721 18 '#92691C'
+    Write-Label 'Register / login / external-login / refresh / logout | Cookies' 860 721 18 '#92691C'
 
     Draw-Link 420 760 420 820
     Write-Label 'EF Core / SQL Server' 445 777 18
@@ -99,6 +99,31 @@ try {
     Write-Label 'BookStore.Authentication' 860 840 27 '#175D50' $true
     Write-Label 'SQL Server | AuthenticationConnection' 860 883 21 '#175D50'
 
+    Write-Label 'AUTHORIZATION AND SECONDARY STORAGE' 70 963 20 '#14263F' $true
+
+    Draw-Panel 70 1005 410 170 '#FFFFFF' '#65A9C6'
+    Write-Label 'PRODUCT / BOOKSTORE' 95 1025 17 '#176B90' $true
+    Write-Label 'Validate and authorize users' 95 1060 22 '#14263F' $true
+    Write-Label 'Authentication API integration planned' 95 1100 18
+    Write-Label 'Policies and endpoint usage pending' 95 1135 18
+
+    Draw-Link 480 1082 570 1082 $true
+    Write-Label 'Planned' 495 1045 16
+    Draw-Panel 575 1005 430 170 '#FFFFFF' '#C9A257'
+    Write-Label 'AUTHENTICATION API' 600 1025 17 '#92691C' $true
+    Write-Label 'JWT validation and roles' 600 1060 22 '#14263F' $true
+    Write-Label 'JWKS / discovery endpoints available' 600 1100 18
+    Write-Label 'Product-facing API contract pending' 600 1135 18
+
+    Draw-Link 1005 1082 1095 1082
+    Write-Label 'Cache' 1028 1045 16
+    Draw-Panel 1100 1005 430 170 '#F9EEEE' '#C37E7E'
+    Write-Label 'REDIS SERVER' 1125 1025 17 '#9E4040' $true
+    Write-Label 'Authentication secondary store' 1125 1060 22 '#14263F' $true
+    Write-Label 'Revoked JWT JTI blacklist with TTL' 1125 1100 18
+    Write-Label 'Redis connection configured in code' 1125 1135 18
+
+    $graphics.TranslateTransform(0, 260)
     Draw-Panel 70 965 1460 120 '#FFFFFF' '#CDD8E6'
     Write-Label 'SHARED CONFIGURATION | BookStore.Common' 100 980 17 '#176B90' $true
     Write-Label 'Authentication / Product / EmailNotification -> AddSharedConfiguration()' 100 1013 23 '#14263F' $true
@@ -133,9 +158,9 @@ try {
     Write-Label 'Empty backend folder; UI proxy prefix exists.' 100 1435 21 '#39475B'
 
     Write-Label 'Solid borders: existing components | Dashed borders: planned components' 70 1505 19
-    Write-Label 'Solid arrows: implemented paths | Dashed arrows: proxy-only or proposed mail connections' 70 1538 19
+    Write-Label 'Solid arrows: implemented paths | Dashed arrows: proxy-only or planned connections' 70 1538 19
     Write-Label 'Scope: local development. Vite proxy is not a production API gateway.' 70 1571 19
-    Write-Label 'Database boxes describe configured targets, not verified deployed databases.' 70 1604 18
+    Write-Label 'Database and Redis boxes are configured targets, not verified deployed servers.' 70 1604 18
 
     $image.Save((Join-Path $PSScriptRoot 'bookstore_architecture.png'),
         [System.Drawing.Imaging.ImageFormat]::Png)
