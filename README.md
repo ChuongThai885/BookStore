@@ -35,6 +35,21 @@ Copy `src\UI\.env.example` to `src\UI\.env` and set `VITE_API_URL` to the
 nginx gateway URL (locally `https://localhost:8000`). API clients use this
 shared URL with their service-specific paths.
 
+Set `VITE_GOOGLE_CLIENT_ID` in `src\UI\.env` to the same public client ID as
+the backend's `Authentication:Google:ClientId`. Vite embeds this value at build
+time, so restart the development server or rebuild the UI after changing it.
+Register the UI origin (for example `https://localhost:8000`) in the Google
+client's Authorized JavaScript origins.
+The Google button uses `@react-oauth/google` to obtain an ID token, then sends it
+to `POST /api/auth/external-login`. Password login uses `POST /api/auth/login`.
+Both flows use the backend's HttpOnly cookies and log the returned user profile,
+not the tokens. Microsoft login and the account-linking UI are not implemented.
+The user profile cache is in memory; no `/me` endpoint is currently provided.
+
+The nginx auth location preserves `/api/auth/` when forwarding to port 5280
+(unlike the Product location, which rewrites its service prefix). After editing
+the gateway configuration, validate and reload nginx.
+
 ## Database configuration
 
 When running from the service project folders, both services load the local
