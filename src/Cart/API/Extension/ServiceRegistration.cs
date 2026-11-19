@@ -1,7 +1,9 @@
 ﻿using BookStore.Common.Caching;
+using BookStore.Common.Messaging.Services;
 using Cart.Application.Interfaces;
 using Cart.Application.Services;
 using Cart.Domain.Interfaces;
+using Cart.Infrastructure.BackgroundJobs;
 using Cart.Infrastructure.Data;
 using Cart.Infrastructure.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,6 +32,8 @@ namespace Cart.API.Extension
 
             // register redis cache services
             services.AddSharedRedis(configuration);
+
+            services.AddRabbitMqMessaging();
 
             // Repository registrations
             services.AddScoped<ICartRepository, CartRepository>();
@@ -97,12 +101,22 @@ namespace Cart.API.Extension
             services.AddAuthorization();
             return services;
         }
+        /// <summary>
+        /// Registers background services: hosted services for periodic tasks.
+        /// </summary>
+        public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
+        {
+            services.AddHostedService<CartSyncBackgroundService>();
+
+            return services;
+        }
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddInfrastructure(configuration)
                 .AddApplication()
                 .AddWebApi()
-                .AddAuthenticationService(configuration);
+                .AddAuthenticationService(configuration)
+                .AddBackgroundServices();
 
             return services;
         }
