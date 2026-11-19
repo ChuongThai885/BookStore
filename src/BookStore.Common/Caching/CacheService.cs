@@ -30,5 +30,35 @@ namespace BookStore.Common.Caching
         }
         public async Task RemoveAsync(string key) => await _database.KeyDeleteAsync(key);
         public async Task<bool> ExistsAsync(string key) => await _database.KeyExistsAsync(key);
+        public async Task<long> HashIncrementAsync(string key, string hashField, long value = 1)
+        {
+            return await _database.HashIncrementAsync(key, hashField, value);
+        }
+        public async Task<long> HashDecrementAsync(string key, string hashField, long value = 1)
+        {
+            return await _database.HashDecrementAsync(key, hashField, value);
+        }
+        public async Task<Dictionary<string, long>> HashGetAllAsync(string key)
+        {
+            var entries = await _database.HashGetAllAsync(key);
+
+            var result = new Dictionary<string, long>();
+            foreach(var entry in entries)
+            {
+                if(long.TryParse(entry.Value.ToString(), out var qty))
+                {
+                    result[entry.Name.ToString()] = qty;
+                }
+            }
+            return result;
+        }
+        public async Task HashDeleteAsync(string key, string hashField)
+        {
+            await _database.HashDeleteAsync(key, hashField);
+        }
+        public async Task KeyExpireAsync(string key, TimeSpan expiration)
+        {
+            await _database.KeyExpireAsync(key, expiration);
+        }
     }
 }
