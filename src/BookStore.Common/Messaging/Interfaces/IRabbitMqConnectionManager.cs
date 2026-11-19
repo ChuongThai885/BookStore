@@ -11,6 +11,6 @@ namespace BookStore.Common.Messaging.Interfaces
         Task<IConnection> GetConnectionAsync(CancellationToken cancellationToken = default);
         Task<IChannel> RentChannelAsync(CancellationToken cancellationToken = default);
         ValueTask ReturnChannelAsync(IChannel channel);
-        Task<IChannel> CreateDedicatedChannelAsync(CancellationToken ct = default);
+        Task<IChannel> CreateDedicatedChannelAsync(CancellationToken cancellationToken = default);
     }
 }

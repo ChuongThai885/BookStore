@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailNotification", "src\Em
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.Common", "src\BookStore.Common\BookStore.Common.csproj", "{00A44AA2-527B-24EB-A91E-BEAA619E4210}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cart", "src\Cart\Cart.csproj", "{7A428400-1BF5-4FCC-98C1-CFE240764E5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{00A44AA2-527B-24EB-A91E-BEAA619E4210}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00A44AA2-527B-24EB-A91E-BEAA619E4210}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00A44AA2-527B-24EB-A91E-BEAA619E4210}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A428400-1BF5-4FCC-98C1-CFE240764E5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A428400-1BF5-4FCC-98C1-CFE240764E5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A428400-1BF5-4FCC-98C1-CFE240764E5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A428400-1BF5-4FCC-98C1-CFE240764E5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
