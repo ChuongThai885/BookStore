@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
-$image = New-Object System.Drawing.Bitmap(1600, 1900)
+$image = New-Object System.Drawing.Bitmap(1600, 1500)
 $graphics = [System.Drawing.Graphics]::FromImage($image)
 $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
@@ -53,114 +53,75 @@ function Draw-Link([float]$x1, [float]$y1, [float]$x2, [float]$y2,
 
 try {
     Write-Label 'BOOK STORE' 70 35 38 '#14263F' $true
-    Write-Label 'Repository architecture | implemented paths and work in progress' 72 88 22
+    Write-Label 'Current runtime components and communication paths' 72 88 22
 
-    Draw-Panel 70 145 1460 140 '#FFFFFF' '#CDD8E6'
-    Write-Label 'BROWSER / UI' 100 165 17 '#176B90' $true
-    Write-Label 'React 19 + TypeScript' 100 197 29 '#14263F' $true
-    Write-Label 'Vite 8 | Tailwind CSS 4 | Axios | TanStack Query' 100 242 21
-    Write-Label 'Product listing wired to API' 1050 200 23 '#176B90' $true
-    Write-Label 'Auth flow not yet wired in UI' 1050 241 20
+    Draw-Panel 70 130 1460 115 '#FFFFFF' '#CDD8E6'
+    Write-Label 'WEB UI' 100 148 17 '#176B90' $true
+    Write-Label 'React + TypeScript | Vite | Axios | TanStack Query' 100 181 26 '#14263F' $true
+    Write-Label 'Product listing calls the Product API' 100 217 19
 
-    Draw-Link 800 285 800 345
-    Write-Label 'HTTP / JSON' 825 300 18
-    Draw-Panel 350 350 900 110 '#EAF3FF' '#A8C6ED'
-    Write-Label 'Vite development proxy' 380 366 25 '#14263F' $true
-    Write-Label '/api/product/* -> Product /api/*' 380 407 20
-    Write-Label '/api/auth/* -> Auth /api/*' 840 407 20
+    Draw-Link 800 245 800 285
+    Write-Label 'HTTP' 820 252 16
+    Draw-Panel 250 290 1100 100 '#EAF3FF' '#A8C6ED'
+    Write-Label 'VITE DEVELOPMENT PROXY' 280 302 17 '#176B90' $true
+    Write-Label '/api/product -> Product API | /api/auth -> Authentication API' 280 339 23 '#14263F' $true
 
-    Draw-Link 565 460 435 535
-    Write-Label 'Product requests' 190 485 19 '#176B90'
-    Draw-Link 1035 460 1165 535 $true
-    Write-Label 'Auth UI integration pending' 1180 485 18
+    Draw-Link 430 390 275 445
+    Write-Label 'HTTP / JSON' 270 404 16
 
-    Draw-Panel 70 540 700 220 '#FFFFFF' '#65A9C6'
-    Write-Label 'PRODUCT SERVICE' 100 558 17 '#176B90' $true
-    Write-Label 'ASP.NET Core Web API (.NET 10)' 100 591 28 '#14263F' $true
-    Write-Label 'Book / Author / Genre controllers' 100 637 22
-    Write-Label 'Application services -> Repositories -> EF Core' 100 678 21
-    Write-Label 'Product API called by the UI' 100 721 18 '#176B90'
+    Draw-Panel 70 450 430 245 '#FFFFFF' '#65A9C6'
+    Write-Label 'PRODUCT API' 95 470 17 '#176B90' $true
+    Write-Label 'ASP.NET Core Web API' 95 505 25 '#14263F' $true
+    Write-Label 'Books / authors / genres' 95 548 20
+    Write-Label 'EF Core repositories' 95 584 20
+    Write-Label 'No JWT middleware configured' 95 642 17 '#687386'
 
-    Draw-Panel 830 540 700 220 '#FFFFFF' '#C9A257'
-    Write-Label 'AUTHENTICATION SERVICE | IN PROGRESS' 860 558 17 '#92691C' $true
-    Write-Label 'ASP.NET Core Identity (.NET 10)' 860 591 28 '#14263F' $true
-    Write-Label 'Guid users / roles | Refresh-token repository' 860 637 21
-    Write-Label 'JWT key manager | JWKS / discovery endpoints' 860 678 21
-    Write-Label 'Register / login / external-login / refresh / logout | Cookies' 860 721 18 '#92691C'
+    Draw-Panel 585 450 430 245 '#FFFFFF' '#C9A257'
+    Write-Label 'AUTHENTICATION API' 610 470 17 '#92691C' $true
+    Write-Label 'ASP.NET Core Identity' 610 505 25 '#14263F' $true
+    Write-Label 'Login / register / refresh / logout' 610 548 19
+    Write-Label 'JWT issuer | OpenID config | JWKS' 610 584 19
+    Write-Label 'SQL + Redis token blacklist' 610 620 18 '#92691C'
 
-    Draw-Link 420 760 420 820
-    Write-Label 'EF Core / SQL Server' 445 777 18
-    Draw-Link 1180 760 1180 820
-    Write-Label 'EF Core / SQL Server' 1205 777 18
-    Draw-Panel 70 825 700 105 '#E8F4F2' '#89B6AA'
-    Write-Label 'BookStore.Products' 100 840 27 '#175D50' $true
-    Write-Label 'SQL Server | ProductConnection' 100 883 21 '#175D50'
-    Draw-Panel 830 825 700 105 '#E8F4F2' '#89B6AA'
-    Write-Label 'BookStore.Authentication' 860 840 27 '#175D50' $true
-    Write-Label 'SQL Server | AuthenticationConnection' 860 883 21 '#175D50'
+    Draw-Panel 1100 450 430 245 '#FFFFFF' '#5E9B76'
+    Write-Label 'CART API + WORKER' 1125 470 17 '#34764D' $true
+    Write-Label 'JWT Bearer + [Authorize]' 1125 505 23 '#14263F' $true
+    Write-Label 'Cart state in Redis hashes' 1125 548 19
+    Write-Label 'RabbitMQ publisher + batch consumer' 1125 584 18
+    Write-Label 'EF Core cart snapshot' 1125 620 18 '#34764D'
 
-    Write-Label 'AUTHORIZATION AND SECONDARY STORAGE' 70 963 20 '#14263F' $true
+    Draw-Link 1100 650 1015 650
 
-    Draw-Panel 70 1005 410 170 '#FFFFFF' '#65A9C6'
-    Write-Label 'PRODUCT / BOOKSTORE' 95 1025 17 '#176B90' $true
-    Write-Label 'Validate and authorize users' 95 1060 22 '#14263F' $true
-    Write-Label 'Authentication API integration planned' 95 1100 18
-    Write-Label 'Policies and endpoint usage pending' 95 1135 18
+    Draw-Link 275 695 275 770
+    Draw-Link 800 695 800 770
+    Draw-Link 1325 695 1325 770
+    Draw-Panel 70 775 430 100 '#E8F4F2' '#89B6AA'
+    Write-Label 'Product SQL Server' 95 794 23 '#175D50' $true
+    Write-Label 'ProductConnection' 95 833 18 '#175D50'
+    Draw-Panel 585 775 430 100 '#E8F4F2' '#89B6AA'
+    Write-Label 'Authentication SQL Server' 610 794 23 '#175D50' $true
+    Write-Label 'AuthenticationConnection' 610 833 18 '#175D50'
+    Draw-Panel 1100 775 430 100 '#E8F4F2' '#89B6AA'
+    Write-Label 'Cart SQL Server' 1125 794 23 '#175D50' $true
+    Write-Label 'CartConnection' 1125 833 18 '#175D50'
 
-    Draw-Link 480 1082 570 1082 $true
-    Write-Label 'Planned' 495 1045 16
-    Draw-Panel 575 1005 430 170 '#FFFFFF' '#C9A257'
-    Write-Label 'AUTHENTICATION API' 600 1025 17 '#92691C' $true
-    Write-Label 'JWT validation and roles' 600 1060 22 '#14263F' $true
-    Write-Label 'JWKS / discovery endpoints available' 600 1100 18
-    Write-Label 'Product-facing API contract pending' 600 1135 18
+    Draw-Panel 70 930 690 185 '#F9EEEE' '#C37E7E'
+    Write-Label 'REDIS SERVER' 100 950 17 '#9E4040' $true
+    Write-Label 'Shared connection used by Authentication and Cart' 100 985 23 '#14263F' $true
+    Write-Label 'Authentication: revoked JWT JTI blacklist with TTL' 100 1030 19
+    Write-Label 'Cart: user cart hashes and expiry' 100 1068 19
 
-    Draw-Link 1005 1082 1095 1082
-    Write-Label 'Cache' 1028 1045 16
-    Draw-Panel 1100 1005 430 170 '#F9EEEE' '#C37E7E'
-    Write-Label 'REDIS SERVER' 1125 1025 17 '#9E4040' $true
-    Write-Label 'Authentication secondary store' 1125 1060 22 '#14263F' $true
-    Write-Label 'Revoked JWT JTI blacklist with TTL' 1125 1100 18
-    Write-Label 'Redis connection configured in code' 1125 1135 18
+    Draw-Panel 840 930 690 210 '#FFF7E8' '#C9A257'
+    Write-Label 'RABBITMQ' 870 950 17 '#92691C' $true
+    Write-Label 'Cart event transport' 870 985 23 '#14263F' $true
+    Write-Label 'Cart publishes cart.touched / cart.cleared' 870 1030 18
+    Write-Label 'CartSyncBackgroundService consumes cart.sync.db' 870 1065 18
+    Write-Label 'Batch sync reads Redis and writes SQL; DLQ configured' 870 1100 17
 
-    $graphics.TranslateTransform(0, 260)
-    Draw-Panel 70 965 1460 120 '#FFFFFF' '#CDD8E6'
-    Write-Label 'SHARED CONFIGURATION | BookStore.Common' 100 980 17 '#176B90' $true
-    Write-Label 'Authentication / Product / EmailNotification -> AddSharedConfiguration()' 100 1013 23 '#14263F' $true
-    Write-Label 'Settings/appsettings.json | ContentRootPath resolution | JWT private PEM defaults to Settings' 100 1052 20
-
-    Write-Label 'PROPOSED EMAIL FLOW | Authentication -> RabbitMQ -> EmailNotification -> SMTP' 70 1110 23 '#14263F' $true
-
-    Draw-Panel 70 1155 430 190 '#F0F1F4' '#AAB1BD' $true
-    Write-Label 'RABBITMQ | PLANNED' 95 1175 17 '#687386' $true
-    Write-Label 'Email message queue' 95 1210 26 '#39475B' $true
-    Write-Label 'Planned publisher: Authentication' 95 1255 19
-    Write-Label 'No publisher / broker client yet' 95 1295 19
-
-    Draw-Link 500 1230 565 1230 $true
-    Write-Label 'Consume' 500 1195 16
-    Draw-Panel 570 1155 470 190 '#FFFFFF' '#65A9C6'
-    Write-Label 'EMAILNOTIFICATION | SCAFFOLD' 595 1175 17 '#176B90' $true
-    Write-Label '.NET 10 BackgroundService' 595 1210 26 '#14263F' $true
-    Write-Label 'MailKit installed; worker logs only' 595 1255 19
-    Write-Label 'RabbitMQ consumer / mail sender pending' 595 1295 19
-
-    Draw-Link 1040 1230 1105 1230 $true
-    Write-Label 'Send' 1050 1195 16
-    Draw-Panel 1110 1155 420 190 '#F0F1F4' '#AAB1BD' $true
-    Write-Label 'SMTP PROVIDER | PLANNED' 1135 1175 17 '#687386' $true
-    Write-Label 'Email delivery' 1135 1210 26 '#39475B' $true
-    Write-Label 'Sent by EmailNotification via MailKit' 1135 1255 19
-    Write-Label 'SMTP sending not implemented yet' 1135 1295 19
-
-    Draw-Panel 70 1380 1460 100 '#F0F1F4' '#AAB1BD' $true
-    Write-Label 'ORDER SERVICE | PLANNED / NOT IMPLEMENTED' 100 1395 17 '#687386' $true
-    Write-Label 'Empty backend folder; UI proxy prefix exists.' 100 1435 21 '#39475B'
-
-    Write-Label 'Solid borders: existing components | Dashed borders: planned components' 70 1505 19
-    Write-Label 'Solid arrows: implemented paths | Dashed arrows: proxy-only or planned connections' 70 1538 19
-    Write-Label 'Scope: local development. Vite proxy is not a production API gateway.' 70 1571 19
-    Write-Label 'Database and Redis boxes are configured targets, not verified deployed servers.' 70 1604 18
+    Write-Label 'Solid arrows show configured application communication. Vite proxy is for local development.' 70 1190 19
+    Write-Label 'Cart validates JWTs using Authentication discovery/JWKS; Product API has no JWT middleware configured.' 70 1225 18
+    Write-Label 'Cart event flow: CartService -> RabbitMQ -> CartSyncBackgroundService -> Redis snapshot -> SQL.' 70 1260 18
+    Write-Label 'Redis and RabbitMQ are external services configured through shared application settings.' 70 1295 18
 
     $image.Save((Join-Path $PSScriptRoot 'bookstore_architecture.png'),
         [System.Drawing.Imaging.ImageFormat]::Png)
