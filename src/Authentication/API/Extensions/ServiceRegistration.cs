@@ -10,6 +10,7 @@ using Authentication.Infrastructure.Data;
 using Authentication.Infrastructure.Repository;
 using Authentication.Infrastructure.Security;
 using BookStore.Common.Caching;
+using BookStore.Common.Routing;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.RateLimiting;
 
-namespace Authentication.API.Extentions
+namespace Authentication.API.Extensions
 {
     public static class ServiceRegistration
     {
@@ -164,7 +165,8 @@ namespace Authentication.API.Extentions
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-            services.AddRouting(options => options.LowercaseUrls = true);
+            services.AddRouting(options => options.LowercaseUrls = true)
+                .AddLowercaseRouting();
 
             return services;
         }

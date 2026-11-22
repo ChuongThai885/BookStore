@@ -29,6 +29,12 @@ root:
 & .\resource\generate-architecture.ps1
 ```
 
+## UI API configuration
+
+Copy `src\UI\.env.example` to `src\UI\.env` and set `VITE_API_URL` to the
+nginx gateway URL (locally `https://localhost:8000`). API clients use this
+shared URL with their service-specific paths.
+
 ## Database configuration
 
 When running from the service project folders, both services load the local

@@ -11,10 +11,6 @@
         "Action": "Start"
       },
       {
-        "Path": "src\\EmailNotification\\EmailNotification.csproj",
-        "Action": "Start"
-      },
-      {
         "Path": "src\\Cart\\Cart.csproj",
         "Action": "Start"
       }

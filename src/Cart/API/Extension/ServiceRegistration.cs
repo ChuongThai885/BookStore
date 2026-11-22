@@ -1,5 +1,6 @@
 ﻿using BookStore.Common.Caching;
 using BookStore.Common.Messaging.Services;
+using BookStore.Common.Routing;
 using Cart.Application.Interfaces;
 using Cart.Application.Services;
 using Cart.Domain.Interfaces;
@@ -58,6 +59,7 @@ namespace Cart.API.Extension
             services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             services.AddEndpointsApiExplorer();
+            services.AddLowercaseRouting();
 
             return services;
         }

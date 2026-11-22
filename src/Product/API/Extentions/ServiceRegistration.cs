@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BookStore.Common.Routing;
+using Microsoft.EntityFrameworkCore;
 using Product.Application.Interfaces;
 using Product.Application.Services;
 using Product.Domain.Interfaces;
@@ -60,6 +61,7 @@ namespace Product.API.Extentions
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+            services.AddLowercaseRouting();
 
             return services;
         }

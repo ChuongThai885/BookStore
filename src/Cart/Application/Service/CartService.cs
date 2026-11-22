@@ -12,10 +12,10 @@ namespace Cart.Application.Services
     public class CartService: ICartService
     {
         private readonly ICartRepository _repository;
-        private readonly ILogger _logger;
+        private readonly ILogger<CartService> _logger;
         private readonly ICacheService _cacheService;
         private IMessagePublisher _publisher;
-        public CartService(ICartRepository cartRepository, ILogger logger, ICacheService cacheService, IMessagePublisher publisher)
+        public CartService(ICartRepository cartRepository, ILogger<CartService> logger, ICacheService cacheService, IMessagePublisher publisher)
         {
             _repository = cartRepository;
             _logger = logger;
