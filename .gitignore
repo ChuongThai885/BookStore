@@ -6,6 +6,7 @@ obj/
 *.csproj.user
 Settings/*
 !Settings/appsettings.example.json
+src/Gateway/ssl/
 
 # Front-end files
 node_modules/
