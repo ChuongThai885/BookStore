@@ -3,8 +3,8 @@ import LoginForm from "../../features/Authentication/components/LoginForm";
 
 export default function Login() {
     return (
-        <section className="grid min-h-full bg-[#fffaf4] lg:grid-cols-2" aria-labelledby="login-title">
-            <div className="relative min-h-64 lg:min-h-full">
+        <section className="grid min-h-screen bg-[#fffaf4] lg:grid-cols-2" aria-labelledby="login-title">
+            <div className="relative min-h-64 lg:min-h-screen">
                 <img src="/background.jpg" alt="A cozy illustrated bookstore" className="absolute inset-0 h-full w-full object-cover object-center" />
             </div>
             <div className="flex items-center justify-center px-6 py-12 sm:px-12 lg:py-16">

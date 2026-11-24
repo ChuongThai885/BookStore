@@ -7,6 +7,10 @@ import Login from "../pages/Login";
 
 export const router = createBrowserRouter([
     {
+        path: "/login",
+        element: <Login />,
+    },
+    {
         path: "/",
         element: <Layout />,
         children: [
@@ -25,10 +29,6 @@ export const router = createBrowserRouter([
             {
                 path: "about-us",
                 element: <AboutUs />,
-            },
-            {
-                path: "login",
-                element: <Login />,
             },
         ],
     },
