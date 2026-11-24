@@ -18,7 +18,7 @@ export default function NavBar() {
                     <NavLink to="/about-us">About Us</NavLink>
                 </div>
             </div>
-            <div className="bg-white p-2">Login</div>
+            <NavLink to="/login" className="bg-white p-2">Login</NavLink>
         </div>
     );
 }
