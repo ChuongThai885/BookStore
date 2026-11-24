@@ -4,22 +4,24 @@
 
 ## Architecture
 
-![Book Store architecture: React UI, Vite development proxy, Product and Authentication services with separate SQL Server databases](resource/bookstore_architecture.png)
+![Book Store architecture: browser and React UI access Product, Authentication, and Cart services through the NGINX gateway, with SQL Server, Redis, and RabbitMQ](resource/bookstore_architecture.png)
 
-The diagram reflects the current local-development structure:
+The diagram shows the current local-development request paths:
 
-- The React UI calls the Product API through the Vite development proxy.
-- Product and Authentication use EF Core with separate SQL Server databases.
-- Authentication is in progress: Identity, refresh-token persistence and
-  JWKS/discovery endpoints exist, but login actions and UI integration are not
-  implemented yet. Its Vite proxy route is configured.
-- Order and RabbitMQ are planned, not implemented. There is no message-broker
-  connection between the services.
+- The browser reaches the React UI through NGINX over HTTPS on port 8000.
+  NGINX forwards `/` to the Vite server on port 5173.
+- UI API calls go back through NGINX: `/api/product/` routes to Product on
+  port 5187, `/api/auth/` to Authentication on port 5280, and `/api/cart/` to
+  Cart on port 5142.
+- Product, Authentication, and Cart use separate EF Core SQL Server databases.
+- Authentication and Cart share Redis for the revoked-token blacklist and cart
+  state. Cart publishes and consumes events through RabbitMQ and syncs cart
+  snapshots to SQL Server.
 
-Solid arrows represent implemented code paths; the dashed arrow represents the
-configured Auth proxy, not a working login flow. Database boxes show configured
-targets, not deployment status. Vite's proxy is development-only, not a production
-API gateway.
+Solid arrows represent configured local application paths. The diagram does
+not imply that the local services or external infrastructure are deployed.
+Cart validates JWTs using Authentication discovery/JWKS; Product currently has
+no JWT authentication middleware configured.
 
 To regenerate the PNG on Windows after editing
 [the diagram script](resource/generate-architecture.ps1), run from the repository
