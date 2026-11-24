@@ -4,11 +4,17 @@ import Product from "../pages/Products";
 import Layout from "../layouts";
 import AboutUs from "../pages/AboutUs";
 import Login from "../pages/Login";
+import GuestRoute from "./guards/GuestRoute";
 
 export const router = createBrowserRouter([
     {
-        path: "/login",
-        element: <Login />,
+        element: <GuestRoute />,
+        children: [
+            {
+                path: "/login",
+                element: <Login />,
+            },
+        ],
     },
     {
         path: "/",

@@ -33,7 +33,7 @@ export default function ExternalLogin() {
                                     return;
                                 }
                                 console.log("Google credential:", credential);
-                                // externalLoginMutation.mutate({ provider: "Google", token: credential });
+                                externalLoginMutation.mutate({ provider: "Google", token: credential });
                             }}
                             onError={() => setGoogleError("Google login failed. Please try again.")}
                         />
